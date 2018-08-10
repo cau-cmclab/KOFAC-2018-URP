@@ -241,4 +241,8 @@ public class MyNetManager : NetworkManager
 
 		currentroom = 0;
 	}
+
+	public void CreateRoom(string roomstr){
+		 zd
+	}
 }
