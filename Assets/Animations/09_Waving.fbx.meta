@@ -171,8 +171,8 @@ ModelImporter:
     - serializedVersion: 16
       name: 09_Waving
       takeName: mixamo.com
-      firstFrame: 0
-      lastFrame: 142
+      firstFrame: 13
+      lastFrame: 121
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

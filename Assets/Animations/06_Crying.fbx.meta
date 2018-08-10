@@ -171,8 +171,8 @@ ModelImporter:
     - serializedVersion: 16
       name: 06_Crying
       takeName: mixamo.com
-      firstFrame: 0
-      lastFrame: 188
+      firstFrame: 33
+      lastFrame: 184
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
