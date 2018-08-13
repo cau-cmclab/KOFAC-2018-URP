@@ -1969,7 +1969,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   naeyong: {fileID: 114216847805456622}
   roomNumber: {fileID: 114720548417991462}
-  currentRoom: 0
+  m_cowboy: {fileID: 1845403517385716}
+  m_canvas: {fileID: 1311126186730016}
+  m_currentRoom: 0
 --- !u!114 &114216847805456622
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2293,7 +2295,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 114126332271872836}
-        m_MethodName: CmdsendMes
+        m_MethodName: SendMes
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

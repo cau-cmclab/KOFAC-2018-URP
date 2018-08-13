@@ -9,6 +9,8 @@ public class MyNetManager : NetworkManager
 {
     // 방입장, 퇴장 등 네트워크 특이사항을 출력하는 패널
     public Text m_netLogPanel;
+
+    public Text m_chat;
     // StartServer, StartClient 버튼
     public GameObject m_startServer;
     public GameObject m_startClient;
@@ -77,12 +79,12 @@ public class MyNetManager : NetworkManager
 	public void OnMessage(NetworkMessage netMsg)
 	{
 		MyMessage msg = netMsg.ReadMessage<MyMessage> ();
-		Debug.Log (msg.clientId + " 유저가 " + msg.strMsg + "를 보냈습니다.");
 
 		MyMessage3 msg3 = new MyMessage3 ();
 		msg3.clientId = msg.clientId;
 		msg3.strMsg = msg.strMsg;
 
+        // 방에 있는 모든 클라이언트에 메시지
 		for (int i = 0; i < ChatRoom[msg.roomNum - 1].Count; i++) {
 			NetworkServer.SendToClient (ChatRoom [msg.roomNum - 1] [i], MyMsgType.CustomMsgType3, msg3);
 		}
@@ -101,25 +103,23 @@ public class MyNetManager : NetworkManager
         Debug.Log ("GetID : " + msg.clientId);
     }
 
+    // 채팅 메시지 출력
 	public void OnMessage3(NetworkMessage netMsg)
 	{
 		MyMessage3 msg = netMsg.ReadMessage<MyMessage3> ();
-        // 문자열 비교는 Equals 함수, ==는 주소 값을 비교해서 안됨.
-		if (msg.strMsg.Equals(":ipjang:")) {
+        // 문자열 비교는 Equals 함수를 사용해야함. ==는 문자열이 저장된 주소 값을 비교해서 서로 다른 운영체제나 기기들은 다른 공간에 저장할 수 있음.
+		if (msg.strMsg.Equals("입장")) {
 			if (msg.clientId != m_clientId) {
-				Text entrytemp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-				entrytemp.text = entrytemp.text + "\n" + msg.clientId.ToString () + " 님이 입장했습니다.";
-			}
+                m_netLogPanel.text = msg.clientId.ToString() + " 님이 입장했습니다.";
+            }
 			return;
 		}
-		else if (msg.strMsg.Equals(":taejang:")) {
-			Text exittemp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-			exittemp.text = exittemp.text + "\n" + msg.clientId.ToString() + " 님이 퇴장했습니다.";
-			return;
+		else if (msg.strMsg.Equals("퇴장")) {
+            m_netLogPanel.text = msg.clientId.ToString() + " 님이 퇴장했습니다.";
+            return;
 		}
 
-		Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-		temp.text = temp.text + "\n" + msg.clientId + " : " + msg.strMsg;
+        m_chat.text = m_chat.text + "\n" + msg.clientId + " : " + msg.strMsg;
 		Debug.Log ("Sender : " + msg.clientId + " /  Msg : " + msg.strMsg);
 	}
 
@@ -137,6 +137,7 @@ public class MyNetManager : NetworkManager
 			return;
 		}
 
+        // 서버의 채팅방에 클라이언트 ID 저장
 		ChatRoom [msg.roomNum - 1].Add (msg.clientId);
 
 		string temp = "";
@@ -155,10 +156,8 @@ public class MyNetManager : NetworkManager
 		NetworkServer.RegisterHandler(MyMsgType.CustomMsgType4, OnMessageGotoChatRoom);
 		Debug.Log("OnStartServer( )");
 
-        /*
-		if (NetworkServer.active)
-			transform.GetChild (0).GetChild (0).GetComponent<Text> ().text = "Server is Working!";
-        */
+        m_netLogPanel.text = "서버가 열렸습니다.";
+
 		for (int i = 0; i < 20; i++)
 			ChatRoom.Add (new List<int> ());
 
@@ -174,6 +173,8 @@ public class MyNetManager : NetworkManager
 		client.RegisterHandler(MyMsgType.CustomMsgType3, OnMessage3);
 		client.RegisterHandler(MyMsgType.CustomMsgType4, OnMessageGotoChatRoom);
 		m_client = client;
+
+        m_netLogPanel.text = "서버에 연결되었습니다.";
 
         m_startServer.SetActive(false);
         m_startClient.SetActive(false);
@@ -211,24 +212,22 @@ public class MyNetManager : NetworkManager
 	}
 
 	public void GotoRoom(int roomNumber) {
+        // 서버채팅방 들어가는 처리.
 		MyMessage_GotoChatRoom msg = new MyMessage_GotoChatRoom ();
 		msg.roomNum = roomNumber;
 		msg.clientId = m_clientId;
 		m_client.Send(MyMsgType.CustomMsgType4, msg);
 
+        // 서버에서 클라이언트의 m_currentRoom 변경.
         m_currentRoom = roomNumber;
 
-        /*
-		Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-		temp.text = temp.text + "\n" + roomNumber + " 번방에 입장했습니다.";
-        */
-
+        // 클라이언트의 NetLogPanel에 출력.
         m_netLogPanel.text = "" + roomNumber + " 번 방에 입장했습니다.";
 
 		MyMessage entryMsg = new MyMessage ();
 		entryMsg.roomNum = m_currentRoom;
 		entryMsg.clientId = m_clientId;
-		entryMsg.strMsg = ":ipjang:";
+		entryMsg.strMsg = "입장";
 		m_client.Send(MyMsgType.CustomMsgType, entryMsg);
 	}
 
@@ -237,13 +236,14 @@ public class MyNetManager : NetworkManager
 		msg.roomNum = roomNumber;
 		msg.clientId = -m_clientId;
 		m_client.Send(MyMsgType.CustomMsgType4, msg);
+       
 		Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
 		temp.text = temp.text + "\n" + m_currentRoom + " 번방에서 퇴장했습니다.";
-
+        
 		MyMessage exitMsg = new MyMessage ();
 		exitMsg.roomNum = m_currentRoom;
 		exitMsg.clientId = m_clientId;
-		exitMsg.strMsg = ":taejang:";
+		exitMsg.strMsg = "퇴장";
 		m_client.Send(MyMsgType.CustomMsgType, exitMsg);
 
 		m_currentRoom = 0;
