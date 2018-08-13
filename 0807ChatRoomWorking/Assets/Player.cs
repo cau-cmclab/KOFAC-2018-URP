@@ -6,23 +6,24 @@ using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour {
 	public Text naeyong;
-	public Text RoomNumber;
+	public Text roomNumber;
 	int speed = 10;
 
 	[SyncVar]
-	public int CurrentRoom;
+	public int currentRoom;
 
 	void Start(){
-		if (!isLocalPlayer)
-			transform.GetChild (0).gameObject.SetActive (false);
-		else
+        if (!isLocalPlayer)
+            transform.GetChild(0).gameObject.SetActive(false);
+        else
 			Cmdgetid ();
 	}
 
 	// Update is called once per frame
 	void Update () {
+        // 리모트 플레이어의 방이 로컬 플레이어와 다르면 비활성화.
 		if (!isLocalPlayer) {
-			if (this.CurrentRoom != MyNetManager.instance.currentroom)
+			if (this.currentRoom != MyNetManager.instance.m_currentRoom)
 				transform.GetChild (1).gameObject.SetActive (false);
 			else
 				transform.GetChild (1).gameObject.SetActive (true);
@@ -34,6 +35,7 @@ public class Player : NetworkBehaviour {
 
 	[Command]
 	public void Cmdgetid(){
+        Debug.Log(this.connectionToClient.connectionId);
 		MyNetManager.instance.SendID (this.connectionToClient.connectionId);
 	}
 
@@ -44,24 +46,19 @@ public class Player : NetworkBehaviour {
 
 	[Command]
 	public void CmdGotoRoom(){
-		MyNetManager.instance.GotoRoom (int.Parse(RoomNumber.text));
-		CmdSetMyRoom(int.Parse(RoomNumber.text));
+        int roomNum = int.Parse(roomNumber.text);
+        MyNetManager.instance.GotoRoom (roomNum);
+		CmdSetMyRoom(roomNum);
 	}
 
 	[Command]
 	public void CmdSetMyRoom (int roomnum){
-		CurrentRoom = roomnum;
-		RpcSetMyRoom (roomnum);
-	}
-
-	[ClientRpc]
-	public void RpcSetMyRoom (int roomnum){
-		CurrentRoom = roomnum;
+		currentRoom = roomnum;
 	}
 
 	[Command]
 	public void CmdExitRoom(){
-		MyNetManager.instance.ExitRoom (int.Parse(RoomNumber.text));
+		MyNetManager.instance.ExitRoom (int.Parse(roomNumber.text));
 		CmdSetMyRoom (0);
 	}
 }

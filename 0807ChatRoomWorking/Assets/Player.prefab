@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 114807606630810206}
   - component: {fileID: 114485205767702162}
   m_Layer: 5
-  m_Name: nayong
+  m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1968,8 +1968,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   naeyong: {fileID: 114216847805456622}
-  RoomNumber: {fileID: 114720548417991462}
-  CurrentRoom: 0
+  roomNumber: {fileID: 114720548417991462}
+  currentRoom: 0
 --- !u!114 &114216847805456622
 MonoBehaviour:
   m_ObjectHideFlags: 1
