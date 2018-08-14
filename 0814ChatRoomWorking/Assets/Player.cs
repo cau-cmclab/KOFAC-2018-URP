@@ -29,8 +29,16 @@ public class Player : NetworkBehaviour {
 				transform.GetChild (1).gameObject.SetActive (true);
 			return;
 		}
+
+		if (CurrentRoom == -1) {
+			transform.GetChild (0).GetChild (0).gameObject.SetActive (false);
+			transform.GetChild (0).GetChild (1).gameObject.SetActive (false);
+		} else {
+			transform.GetChild (0).GetChild (0).gameObject.SetActive (true);
+			transform.GetChild (0).GetChild (1).gameObject.SetActive (true);
+		}
+
 		CmdSetMyRoom (MyNetManager.instance.currentroom);
-		CurrentRoom = MyNetManager.instance.currentroom;
 		transform.GetChild(1).Translate (Vector3.right * speed * Time.smoothDeltaTime * Input.GetAxis ("Horizontal"), Space.World);
 		transform.GetChild(1).Translate (Vector3.forward * speed * Time.smoothDeltaTime * Input.GetAxis ("Vertical"), Space.World);
 	}
@@ -45,7 +53,7 @@ public class Player : NetworkBehaviour {
 		MyNetManager.instance.SendToServer (naeyong.text);
 	}
 
-	[Command]
+	//[Command]
 	public void CmdGotoRoom(){
 		MyNetManager.instance.GotoRoom (int.Parse(RoomNum.text));
 	}
@@ -61,9 +69,9 @@ public class Player : NetworkBehaviour {
 		CurrentRoom = roomnum;
 	}
 
-	[Command]
+	//[Command]
 	public void CmdExitRoom(){
-		//MyNetManager.instance.ExitRoom (int.Parse(RoomNumber.text));
+		MyNetManager.instance.ExitRoom (int.Parse(RoomNum.text));
 	}
 
 	[Command]

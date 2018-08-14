@@ -133,12 +133,17 @@ public class MyNetManager : NetworkManager
 			return;
 		}
 		Chatroom [msg.RoomNum].Member.Add (msg.User);
-		currentroom = msg.RoomNum;
-		//string temp = "";
-		//int k;
-		//for (k = 0; k < Chatroom [getroomnum (msg.RoomName)].Member.Count; k++)
-		//	temp = temp + Chatroom [getroomnum (msg.RoomName)].Member [k] + "/";
-		//Debug.Log (temp);
+
+		MyMessage_RoomInfo msg_room = new MyMessage_RoomInfo ();
+		msg_room.RoomName = Chatroom [msg.RoomNum].RoomName;
+		msg_room.RoomNum = Chatroom [msg.RoomNum].RoomNum;
+		NetworkServer.SendToClient (msg.User, MyMsgType.CustomMsgType_RoomInfo, msg_room);
+
+		string temp = "";
+		int k;
+		for (k = 0; k < Chatroom [msg.RoomNum].Member.Count; k++)
+			temp = temp + Chatroom [msg.RoomNum].Member [k] + "/";
+		Debug.Log (temp);
 	}
 
 	public void OnMessageCreateRoom(NetworkMessage netMsg)
@@ -160,11 +165,15 @@ public class MyNetManager : NetworkManager
 	public void OnMessageRoomInfo(NetworkMessage netMsg)
 	{
 		MyMessage_RoomInfo msg = netMsg.ReadMessage<MyMessage_RoomInfo> ();
-		Text RoomInfo = transform.GetChild (0).GetChild (0).GetComponent<Text> ();
-		ChatLog.text += "\n" + msg.RoomName + "에 입장했습니다.";
-		RoomInfo.text = msg.RoomNum + "번방 / " + msg.RoomName;
-		GotoRoom(msg.RoomNum);
-		currentroom = msg.RoomNum;
+
+		if (currentroom != msg.RoomNum) {
+			GotoRoom (msg.RoomNum);
+			currentroom = msg.RoomNum;
+		} else {
+			Text RoomInfo = transform.GetChild (0).GetChild (0).GetComponent<Text> ();
+			ChatLog.text += "\n" + msg.RoomName + "에 입장했습니다.";
+			RoomInfo.text = msg.RoomNum + "번방 / " + msg.RoomName;
+		}
 	}
 
 
@@ -256,6 +265,8 @@ public class MyNetManager : NetworkManager
 		msg.User = sender;
 		mClient.Send(MyMsgType.CustomMsgType4, msg);
 
+		currentroom = RoomNum;
+
 		MyMessage hellomsg = new MyMessage ();
 		hellomsg.Roomnum = currentroom;
 		hellomsg.sender = sender;
@@ -263,9 +274,9 @@ public class MyNetManager : NetworkManager
 		mClient.Send(MyMsgType.CustomMsgType, hellomsg);
 	}
 
-	public void ExitRoom(int RoomNumber){
+	public void ExitRoom(int RoomNum){
 		MyMessage_GotoChatRoom msg = new MyMessage_GotoChatRoom ();
-		//msg.RoomNum = RoomNumber;
+		msg.RoomNum = RoomNum;
 		msg.User = -sender;
 		mClient.Send(MyMsgType.CustomMsgType4, msg);
 		Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
@@ -279,7 +290,7 @@ public class MyNetManager : NetworkManager
 		exitmsg.strmsg = ":taejang:";
 		mClient.Send(MyMsgType.CustomMsgType, exitmsg);
 
-		currentroom = 0;
+		currentroom = -1;
 	}
 
 	public void CreateRoom(string roomstr){
