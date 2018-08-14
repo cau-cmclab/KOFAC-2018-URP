@@ -10,6 +10,7 @@ public class MyNetManager : NetworkManager
 	public int sender;
 	public int currentroom = -1;
 	public int RoomCount = 0;
+	public Text ChatLog;
 
 	//List<List<int>> ChatRoom = new List<List<int>>();
 	//List<string> RoomNameList = new List<string> ();
@@ -17,6 +18,7 @@ public class MyNetManager : NetworkManager
 	public struct StructChatroom
 	{
 		public string RoomName;
+		public int RoomNum;
 		public List<int> Member;
 	};
 
@@ -56,7 +58,7 @@ public class MyNetManager : NetworkManager
 
 	public class MyMessage_GotoChatRoom : MessageBase
 	{
-		public string RoomName;
+		public int RoomNum;
 		public int User;
 	}
 
@@ -109,14 +111,12 @@ public class MyNetManager : NetworkManager
 		MyMessage3 msg = netMsg.ReadMessage<MyMessage3> ();
 		if (msg.strmsg == ":ipjang:") {
 			if (msg.sender != sender) {
-				Text entrytemp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-				entrytemp.text = entrytemp.text + "\n" + msg.sender.ToString () + " 님이 입장했습니다.";
+				ChatLog.text = ChatLog.text + "\n" + msg.sender.ToString () + " 님이 입장했습니다.";
 			}
 			return;
 		}
 		else if (msg.strmsg == ":taejang:") {
-			Text exittemp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-			exittemp.text = exittemp.text + "\n" + msg.sender.ToString() + " 님이 퇴장했습니다.";
+			ChatLog.text = ChatLog.text + "\n" + msg.sender.ToString() + " 님이 퇴장했습니다.";
 			return;
 		}
 
@@ -127,47 +127,44 @@ public class MyNetManager : NetworkManager
 
 	public void OnMessageGotoChatRoom(NetworkMessage netMsg)
 	{
-		Debug.Log ("5");
 		MyMessage_GotoChatRoom msg = netMsg.ReadMessage<MyMessage_GotoChatRoom> ();
 		if (msg.User < 0){
-			Chatroom [getroomnum (msg.RoomName)].Member.Remove (-msg.User);
+			Chatroom [msg.RoomNum].Member.Remove (-msg.User);
 			return;
 		}
-		Debug.Log ("6");
-		Chatroom [getroomnum (msg.RoomName)].Member.Add (msg.User);
-		currentroom = getroomnum (msg.RoomName);
+		Chatroom [msg.RoomNum].Member.Add (msg.User);
+		currentroom = msg.RoomNum;
 		//string temp = "";
 		//int k;
 		//for (k = 0; k < Chatroom [getroomnum (msg.RoomName)].Member.Count; k++)
 		//	temp = temp + Chatroom [getroomnum (msg.RoomName)].Member [k] + "/";
 		//Debug.Log (temp);
-		Debug.Log ("7");
 	}
 
 	public void OnMessageCreateRoom(NetworkMessage netMsg)
 	{
-		Debug.Log ("2");
 		MyMessage_CreateRoom msg = netMsg.ReadMessage<MyMessage_CreateRoom> ();
 		StructChatroom temp = new StructChatroom ();
 		temp.RoomName = msg.RoomName;
+		temp.RoomNum = RoomCount;
+		RoomCount++;
 		temp.Member = new List<int> ();
 		Chatroom.Add (temp);
-		Debug.Log ("3");
 		MyMessage_RoomInfo msg_room = new MyMessage_RoomInfo ();
 		msg_room.RoomName = msg.RoomName;
-		msg_room.RoomNum = getroomnum (msg.RoomName);
+		msg_room.RoomNum = temp.RoomNum;
 		NetworkServer.SendToClient (msg.maker, MyMsgType.CustomMsgType_RoomInfo, msg_room);
+		Debug.Log (Chatroom[0].RoomNum + "/" + temp.RoomNum);
 	}
 
 	public void OnMessageRoomInfo(NetworkMessage netMsg)
 	{
-		Debug.Log ("4");
 		MyMessage_RoomInfo msg = netMsg.ReadMessage<MyMessage_RoomInfo> ();
 		Text RoomInfo = transform.GetChild (0).GetChild (0).GetComponent<Text> ();
+		ChatLog.text += "\n" + msg.RoomName + "에 입장했습니다.";
 		RoomInfo.text = msg.RoomNum + "번방 / " + msg.RoomName;
-		GotoRoom(msg.RoomName);
+		GotoRoom(msg.RoomNum);
 		currentroom = msg.RoomNum;
-		Debug.Log ("8");
 	}
 
 
@@ -253,13 +250,11 @@ public class MyNetManager : NetworkManager
 	}
 
 
-	public void GotoRoom(string roomname) {
+	public void GotoRoom(int RoomNum) {
 		MyMessage_GotoChatRoom msg = new MyMessage_GotoChatRoom ();
-		msg.RoomName = roomname;
+		msg.RoomNum = RoomNum;
 		msg.User = sender;
 		mClient.Send(MyMsgType.CustomMsgType4, msg);
-		Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-		temp.text = temp.text + "\n" + roomname + " 에 입장했습니다.";
 
 		MyMessage hellomsg = new MyMessage ();
 		hellomsg.Roomnum = currentroom;
@@ -288,7 +283,6 @@ public class MyNetManager : NetworkManager
 	}
 
 	public void CreateRoom(string roomstr){
-		Debug.Log ("1");
 		MyMessage_CreateRoom msg = new MyMessage_CreateRoom ();
 		msg.RoomName = roomstr;
 		msg.maker = sender;

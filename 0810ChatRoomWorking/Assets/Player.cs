@@ -7,6 +7,7 @@ using UnityEngine.Networking;
 public class Player : NetworkBehaviour {
 	public Text naeyong;
 	public Text RoomName;
+	public Text RoomNum;
 	int speed = 10;
 
 	[SyncVar]
@@ -46,7 +47,7 @@ public class Player : NetworkBehaviour {
 
 	[Command]
 	public void CmdGotoRoom(){
-		MyNetManager.instance.GotoRoom (RoomName.text);
+		MyNetManager.instance.GotoRoom (int.Parse(RoomNum.text));
 	}
 
 	[Command]
