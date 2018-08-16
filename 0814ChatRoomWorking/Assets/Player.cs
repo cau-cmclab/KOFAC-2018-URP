@@ -5,18 +5,18 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour {
-	public Text Content;
-	public Text RoomName;
-	public Text RoomNum;
+	public Text m_chat;  // 보내려는 채팅 내용
+    public Text m_roomName;
+	public Text m_roomNum;
 
     // 활성화, 비활성화를 위한 변수
     public GameObject m_canvas;
     public GameObject m_player;  // cowboy object
-    public GameObject m_contentUI;
+    public GameObject m_chatField;  // 채팅 입력창
     public GameObject m_sendMsgButton;
 
 	[SyncVar]
-	public int m_currentRoom;
+	public int m_currentRoom;  // 로컬, 리모트 플레이어가 접속한 방
 
     int speed = 10;
 
@@ -25,7 +25,7 @@ public class Player : NetworkBehaviour {
 		if (!isLocalPlayer)
 			m_canvas.SetActive (false);
 		else
-			Cmdgetid ();
+			CmdGetId ();
 	}
 
 	// Update is called once per frame
@@ -40,13 +40,14 @@ public class Player : NetworkBehaviour {
 
         // 방에 입장하지 않은 상태라면 메시지 보내는 버튼 비활성화
 		if (m_currentRoom == -1) {
-			m_contentUI.SetActive (false);
+			m_chatField.SetActive (false);
 			m_sendMsgButton.SetActive (false);
 		} else {
-            m_contentUI.SetActive(true);
+            m_chatField.SetActive(true);
             m_sendMsgButton.SetActive(true);
         }
 
+        // player의 m_currentRoom과 MyNetManager의 m_currentRoom은 매순간 동기화된다.
 		CmdSetMyRoom (MyNetManager.instance.m_currentRoom);
 
 		m_player.transform.Translate (Vector3.right * speed * Time.smoothDeltaTime * Input.GetAxis ("Horizontal"), Space.World);
@@ -54,38 +55,37 @@ public class Player : NetworkBehaviour {
 	}
 
 	[Command]
-	public void Cmdgetid(){
+	public void CmdGetId(){
 		MyNetManager.instance.SendID (this.connectionToClient.connectionId);
 	}
 
-	[Command]
-	public void CmdsendMes(){
-		MyNetManager.instance.SendToServer (Content.text);
+    // 서버로 채팅 메시지 전송
+	public void SendMes(){
+		MyNetManager.instance.SendToServer (m_chat.text);
 	}
 
-	//[Command]
-	public void CmdGotoRoom(){
-		MyNetManager.instance.GotoRoom (int.Parse(RoomNum.text));
-	}
+    [Command]
+    public void CmdSetMyRoom(int roomnum)
+    {
+        m_currentRoom = roomnum;
+    }
 
-	[Command]
-	public void CmdSetMyRoom (int roomnum){
-		m_currentRoom = roomnum;
-		RpcSetMyRoom (roomnum);
-	}
+    [Command]
+    public void CmdCreateRoom()
+    {
+        MyNetManager.instance.CreateRoom(m_roomName.text);
+    }
 
-	[ClientRpc]
-	public void RpcSetMyRoom (int roomnum){
-		m_currentRoom = roomnum;
+    // Enter버튼 클릭시
+    //[Command]
+    public void CmdGotoRoom(){
+		MyNetManager.instance.GotoRoom (int.Parse(m_roomNum.text));
 	}
-
+    
 	//[Command]
 	public void CmdExitRoom(){
-		MyNetManager.instance.ExitRoom (int.Parse(RoomNum.text));
+		MyNetManager.instance.ExitRoom (int.Parse(m_roomNum.text));
 	}
 
-	[Command]
-	public void CmdCreateRoom(){
-		MyNetManager.instance.CreateRoom (RoomName.text);
-	}
+
 }

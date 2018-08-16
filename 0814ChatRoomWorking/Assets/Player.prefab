@@ -305,7 +305,7 @@ GameObject:
   - component: {fileID: 114807606630810206}
   - component: {fileID: 114485205767702162}
   m_Layer: 5
-  m_Name: Content
+  m_Name: ChatField
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -763,7 +763,7 @@ GameObject:
   - component: {fileID: 114903845007260272}
   - component: {fileID: 114284663716779676}
   m_Layer: 5
-  m_Name: Room
+  m_Name: Room Enter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2045,12 +2045,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69841c62e58bd3443a0fc36de6f9678c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Content: {fileID: 114216847805456622}
-  RoomName: {fileID: 114924849438802478}
-  RoomNum: {fileID: 114339446919184524}
+  m_chat: {fileID: 114216847805456622}
+  m_roomName: {fileID: 114924849438802478}
+  m_roomNum: {fileID: 114339446919184524}
   m_canvas: {fileID: 1311126186730016}
   m_player: {fileID: 1845403517385716}
-  m_contentUI: {fileID: 1222330875944156}
+  m_chatField: {fileID: 1222330875944156}
   m_sendMsgButton: {fileID: 1971872548684406}
   m_currentRoom: 0
 --- !u!114 &114216847805456622
@@ -2494,7 +2494,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 114126332271872836}
-        m_MethodName: CmdsendMes
+        m_MethodName: SendMes
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2950,9 +2950,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Room
-
-'
+  m_Text: Room Enter
 --- !u!137 &137866489264860840
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1
@@ -3236,11 +3234,11 @@ RectTransform:
   m_Children:
   - {fileID: 224086893310112152}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 485.8, y: 265}
+  m_AnchoredPosition: {x: 432.3, y: 265}
   m_SizeDelta: {x: 90, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224311464641238364
@@ -3273,11 +3271,11 @@ RectTransform:
   m_Children:
   - {fileID: 224527292867823414}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 3
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 485.4, y: 225.4}
+  m_AnchoredPosition: {x: 431.9, y: 225.4}
   m_SizeDelta: {x: 90, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224341030104505260
@@ -3314,7 +3312,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 392.5, y: 224.5}
+  m_AnchoredPosition: {x: 339, y: 224.5}
   m_SizeDelta: {x: 90, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224422592804326040
@@ -3330,11 +3328,11 @@ RectTransform:
   - {fileID: 224613158504675862}
   - {fileID: 224630108550115956}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 316.5, y: 263.9}
+  m_AnchoredPosition: {x: 263, y: 263.9}
   m_SizeDelta: {x: 240, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224475664123214378
@@ -3442,10 +3440,10 @@ RectTransform:
   - {fileID: 224475664123214378}
   - {fileID: 224776442208468234}
   - {fileID: 224389615705491884}
-  - {fileID: 224332383139949068}
   - {fileID: 224422592804326040}
-  - {fileID: 224308485686345392}
   - {fileID: 224668236242673998}
+  - {fileID: 224332383139949068}
+  - {fileID: 224308485686345392}
   m_Father: {fileID: 4140397886673270}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3467,11 +3465,11 @@ RectTransform:
   - {fileID: 224494267571982188}
   - {fileID: 224092976705600478}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 6
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 267.3, y: 224.2}
+  m_AnchoredPosition: {x: 213.79999, y: 224.2}
   m_SizeDelta: {x: 140, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224765464981115724
