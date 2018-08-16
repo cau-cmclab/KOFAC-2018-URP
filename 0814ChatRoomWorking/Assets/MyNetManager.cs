@@ -12,9 +12,6 @@ public class MyNetManager : NetworkManager
 	public int RoomCount = 0;
 	public Text ChatLog;
 
-	//List<List<int>> ChatRoom = new List<List<int>>();
-	//List<string> RoomNameList = new List<string> ();
-
 	public struct StructChatroom
 	{
 		public string RoomName;
