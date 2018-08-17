@@ -15,7 +15,7 @@ public class Player : NetworkBehaviour {
     public GameObject m_chatField;  // 채팅 입력창
     public GameObject m_sendMsgButton;
 
-	[SyncVar]
+	[SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다.
 	public int m_currentRoom;  // 로컬, 리모트 플레이어가 접속한 방
 
     int speed = 10;

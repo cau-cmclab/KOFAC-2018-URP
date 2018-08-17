@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class MyNetManager : NetworkManager
 {
-
     public NetworkClient m_client;
 	public int m_clientId;
 	public int m_currentRoom = -1; // 로컬 플레이어가 접속한 방
@@ -41,37 +40,6 @@ public class MyNetManager : NetworkManager
         }
     }
 
-
-
-    // Exit 버튼
-	public void ExitRoom(int RoomNum){
-        Message.MyMessage_GotoChatRoom msg = new Message.MyMessage_GotoChatRoom ();
-		msg.roomNum = RoomNum;
-		msg.clientId = -m_clientId;
-		m_client.Send(Message.MyMsgType.CustomMsgType4, msg);
-		Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-		temp.text = temp.text + "\n" + m_currentRoom + " 번방에서 퇴장했습니다.";
-		Text RoomInfo = transform.GetChild (0).GetChild (0).GetComponent<Text> ();
-		RoomInfo.text = "로비";
-
-        Message.Msg_Chat exitmsg = new Message.Msg_Chat ();
-		exitmsg.roomNum = m_currentRoom;
-		exitmsg.clientId = m_clientId;
-		exitmsg.strMsg = ":out:";
-		m_client.Send(Message.MyMsgType.SendChatToServer, exitmsg);
-
-		m_currentRoom = -1;
-	}
-
-
-
-    // 어디서 호출??
-	public int GetRoomNum(string str){
-		//Debug.Log ("Index : " + Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.RoomName == str)));
-		return Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.roomName == str));
-	}
-
-
     #region Server
 
     // StartServer 버튼 클릭시 호출
@@ -85,12 +53,12 @@ public class MyNetManager : NetworkManager
     {
         base.OnStartServer();
         NetworkServer.RegisterHandler(MsgType.Connect, OnConnected);
-        NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatFromClient);
+        NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatOnServer);
         //NetworkServer.RegisterHandler(Message.MyMsgType.AssignClientId, Message.OnMsgAssignClientId);
-        //NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatFromServer);
-        NetworkServer.RegisterHandler(Message.MyMsgType.CustomMsgType4, Message.OnMessageGotoChatRoom);
-        NetworkServer.RegisterHandler(Message.MyMsgType.CustomMsgType_CreateRoom, Message.OnMessageCreateRoom);
-        NetworkServer.RegisterHandler(Message.MyMsgType.CustomMsgType_RoomInfo, Message.OnMessageRoomInfo);
+        //NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
+        NetworkServer.RegisterHandler(Message.MyMsgType.GoToChatRoom, Message.OnMsgGotoChatRoom);
+        NetworkServer.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
+        //NetworkServer.RegisterHandler(Message.MyMsgType.CustomMsgType_RoomInfo, Message.OnMsgReceiveRoomInfo);
         Debug.Log("OnStartServer( )");
 
         /*if (NetworkServer.active)
@@ -130,12 +98,12 @@ public class MyNetManager : NetworkManager
     public override void OnStartClient(NetworkClient client)
     {
         base.OnStartClient(client);
-        //client.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatFromClient);
+        //client.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatOnServer);
         client.RegisterHandler(Message.MyMsgType.AssignClientId, Message.OnMsgAssignClientId);
-        client.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatFromServer);
-        client.RegisterHandler(Message.MyMsgType.CustomMsgType4, Message.OnMessageGotoChatRoom);
-        client.RegisterHandler(Message.MyMsgType.CustomMsgType_CreateRoom, Message.OnMessageCreateRoom);
-        client.RegisterHandler(Message.MyMsgType.CustomMsgType_RoomInfo, Message.OnMessageRoomInfo);
+        client.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
+        //client.RegisterHandler(Message.MyMsgType.GoToChatRoom, Message.OnMsgGotoChatRoom);
+        //client.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
+        client.RegisterHandler(Message.MyMsgType.CustomMsgType_RoomInfo, Message.OnMsgReceiveRoomInfo);
 
         m_client = client;
 
@@ -161,24 +129,25 @@ public class MyNetManager : NetworkManager
     /// <param name="roomstr"></param>
     public void CreateRoom(string roomstr)
     {
-        Message.MyMessage_CreateRoom msg = new Message.MyMessage_CreateRoom();
+        Message.Msg_CreateRoom msg = new Message.Msg_CreateRoom();
         msg.roomName = roomstr;
         msg.clientId = m_clientId;
-        m_client.Send(Message.MyMsgType.CustomMsgType_CreateRoom, msg);
+        m_client.Send(Message.MyMsgType.CreateRoom, msg);
     }
 
     // Enter 버튼 클릭시 
     public void GotoRoom(int RoomNum)
     {
         // 입력한 방으로 접속
-        Message.MyMessage_GotoChatRoom msg = new Message.MyMessage_GotoChatRoom();
+        Message.Msg_GotoChatRoom msg = new Message.Msg_GotoChatRoom();
         msg.roomNum = RoomNum;
         msg.clientId = m_clientId;
-        m_client.Send(Message.MyMsgType.CustomMsgType4, msg);
+        m_client.Send(Message.MyMsgType.GoToChatRoom, msg);
 
-        // 자신의 방 초기화(클라이언트가 직접 자기 값을 수정함. 이를 다른 클라이언트가 어떻게 알수있는가?)
+        // 자신의 방 초기화
         m_currentRoom = RoomNum;
 
+        // 입장 메시지 전달(다른 클라이언트들에게 입장했음을 알림.)
         Message.Msg_Chat hellomsg = new Message.Msg_Chat();
         hellomsg.roomNum = m_currentRoom;
         hellomsg.clientId = m_clientId;
@@ -186,7 +155,36 @@ public class MyNetManager : NetworkManager
         m_client.Send(Message.MyMsgType.SendChatToServer, hellomsg);
     }
 
+    // Exit 버튼
+    public void ExitRoom(int RoomNum)
+    {
+        Message.Msg_GotoChatRoom msg = new Message.Msg_GotoChatRoom();
+        msg.roomNum = RoomNum;
+        msg.clientId = -m_clientId;  // 클라이언트ID를 음수로 바꾼다.
+        m_client.Send(Message.MyMsgType.GoToChatRoom, msg);
 
+        //Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
+        //temp.text = temp.text + "\n" + m_currentRoom + " 번방에서 퇴장했습니다.";
+        
+
+        Text RoomInfo = transform.GetChild(0).GetChild(0).GetComponent<Text>();
+        RoomInfo.text = "로비";
+
+        Message.Msg_Chat exitmsg = new Message.Msg_Chat();
+        exitmsg.roomNum = m_currentRoom;
+        exitmsg.clientId = m_clientId;
+        exitmsg.strMsg = ":out:";
+        m_client.Send(Message.MyMsgType.SendChatToServer, exitmsg);
+
+        m_currentRoom = -1;
+    }
 
     #endregion
+
+    // 수정중
+    /*
+	public int GetRoomNum(string str){
+		//Debug.Log ("Index : " + Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.RoomName == str)));
+		return Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.roomName == str));
+	}*/
 }

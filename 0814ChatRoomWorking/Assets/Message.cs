@@ -19,9 +19,9 @@ public class Message : MonoBehaviour{
         // Msg_Chat
         public static short SendChatToClient = MsgType.Highest + 3;
         // 
-        public static short CustomMsgType4 = MsgType.Highest + 4;
+        public static short GoToChatRoom = MsgType.Highest + 4;
 
-        public static short CustomMsgType_CreateRoom = MsgType.Highest + 5;
+        public static short CreateRoom = MsgType.Highest + 5;
 
         public static short CustomMsgType_RoomInfo = MsgType.Highest + 6;
     }
@@ -42,13 +42,13 @@ public class Message : MonoBehaviour{
         public int clientId;
     }
 
-    public class MyMessage_GotoChatRoom : MessageBase
+    public class Msg_GotoChatRoom : MessageBase
     {
         public int roomNum;
         public int clientId;
     }
 
-    public class MyMessage_CreateRoom : MessageBase
+    public class Msg_CreateRoom : MessageBase
     {
         public string roomName;
         public int clientId;
@@ -62,13 +62,6 @@ public class Message : MonoBehaviour{
 
     #endregion
 
-    
-
-
-
-
-
-
 
     /*서버가 처리하는 콜백함수.*/
     #region Server
@@ -79,7 +72,7 @@ public class Message : MonoBehaviour{
     /// </summary>
     /// <param name="netMsg"></param>
     // SendChatToServer에 대한 콜백함수
-    public static void OnMsgReceiveChatFromClient(NetworkMessage netMsg)
+    public static void OnMsgReceiveChatOnServer(NetworkMessage netMsg)
     {
         Msg_Chat msg = netMsg.ReadMessage<Msg_Chat>();
 
@@ -90,9 +83,9 @@ public class Message : MonoBehaviour{
         }
     }
 
-    public static void OnMessageCreateRoom(NetworkMessage netMsg)
+    public static void OnMsgCreateRoom(NetworkMessage netMsg)
     {
-        MyMessage_CreateRoom msg = netMsg.ReadMessage<MyMessage_CreateRoom>();
+        Msg_CreateRoom msg = netMsg.ReadMessage<Msg_CreateRoom>();
 
         // 방 정보를 갖는 구조체를 만든다.
         MyNetManager.StructChatroom tmpRoom = new MyNetManager.StructChatroom();
@@ -100,8 +93,9 @@ public class Message : MonoBehaviour{
         tmpRoom.roomNum = MyNetManager.instance.m_roomCount++; // 방 번호 부여
         tmpRoom.member = new List<int>();
 
-        MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 추가
+        MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 방 추가
 
+        /* 아래가 하는 역할 : 방정보를 클라이언트에게 전달하여 ?? */
         // 방 정보 메시지를 만든다.
         MyMessage_RoomInfo msg_room = new MyMessage_RoomInfo();
         msg_room.roomName = msg.roomName;
@@ -113,9 +107,10 @@ public class Message : MonoBehaviour{
         Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "/" + tmpRoom.roomNum);
     }
 
-    public static void OnMessageGotoChatRoom(NetworkMessage netMsg)
+    // 채팅방 입장, 퇴장에 대한 처리
+    public static void OnMsgGotoChatRoom(NetworkMessage netMsg)
     {
-        MyMessage_GotoChatRoom msg = netMsg.ReadMessage<MyMessage_GotoChatRoom>();
+        Msg_GotoChatRoom msg = netMsg.ReadMessage<Msg_GotoChatRoom>();
 
         // Exit에 대한 처리
         if (msg.clientId < 0)
@@ -125,8 +120,9 @@ public class Message : MonoBehaviour{
         }
 
         // Enter에 대한 처리
-        MyNetManager.instance.Chatroom[msg.roomNum].member.Add(msg.clientId);
+        MyNetManager.instance.Chatroom[msg.roomNum].member.Add(msg.clientId); // 채팅방에 멤버 추가
 
+        // 
         MyMessage_RoomInfo msg_room = new MyMessage_RoomInfo();
         msg_room.roomName = MyNetManager.instance.Chatroom[msg.roomNum].roomName;
         msg_room.roomNum = MyNetManager.instance.Chatroom[msg.roomNum].roomNum;
@@ -139,7 +135,6 @@ public class Message : MonoBehaviour{
     }
 
     #endregion
-
 
 
     /*클라이언트가 처리하는 콜백함수.*/
@@ -159,11 +154,11 @@ public class Message : MonoBehaviour{
     /// </summary>
     /// <param name="netMsg"></param>
     // SendChatToClient에 대한 콜백함수
-    public static void OnMsgReceiveChatFromServer(NetworkMessage netMsg)
+    public static void OnMsgReceiveChatOnClient(NetworkMessage netMsg)
     {
         Msg_Chat msg = netMsg.ReadMessage<Msg_Chat>();
 
-        // 입장, 퇴장에 대해 
+        // 입장, 퇴장에 대해 처리
         if (msg.strMsg.Equals(":enter:"))
         {
             if (msg.clientId != MyNetManager.instance.m_clientId)
@@ -183,23 +178,26 @@ public class Message : MonoBehaviour{
         Debug.Log("Sender : " + msg.clientId + " /  Msg : " + msg.strMsg);
     }
 
-    // 
-    public static void OnMessageRoomInfo(NetworkMessage netMsg)
+    // 클라이언트가 방정보를 받아
+    public static void OnMsgReceiveRoomInfo(NetworkMessage netMsg)
     {
         MyMessage_RoomInfo msg = netMsg.ReadMessage<MyMessage_RoomInfo>();
 
-        // 현재 m_currentRoom 초기화 하나때문에 메시지를 번복하는 꼴임.
+        // 클라이언트의 현재방을 접속한(생성한) 방으로 변경한다.
         if (MyNetManager.instance.m_currentRoom != msg.roomNum)
         {
             MyNetManager.instance.GotoRoom(msg.roomNum);
-            // MyNetManager.instance.m_currentRoom = msg.roomNum; // GotoRoom메서드에서 중복됨. 
         }
+        // 입장 메시지를 자신의 화면에 출력.
         else
         {
-            Text RoomInfo = MyNetManager.instance.transform.GetChild(0).GetChild(0).GetComponent<Text>();
-            RoomInfo.text = msg.roomNum + "번방 / " + msg.roomName;
+            MyNetManager.instance.m_netInfoPanel.text = msg.roomNum + "번방 / " + msg.roomName;
             MyNetManager.instance.m_chatLog.text += "\n" + msg.roomName + "에 입장했습니다.";
         }
     }
+
+
+
+
     #endregion
 }
