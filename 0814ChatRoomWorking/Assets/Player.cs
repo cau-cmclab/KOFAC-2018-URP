@@ -70,7 +70,7 @@ public class Player : NetworkBehaviour {
         m_currentRoom = roomnum;
     }
 
-    [Command]
+    //[Command]
     public void CmdCreateRoom()
     {
         MyNetManager.instance.CreateRoom(m_roomName.text);

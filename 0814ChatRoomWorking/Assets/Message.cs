@@ -19,11 +19,11 @@ public class Message : MonoBehaviour{
         // Msg_Chat
         public static short SendChatToClient = MsgType.Highest + 3;
         // 
-        public static short GoToChatRoom = MsgType.Highest + 4;
+        public static short InAndOutChatRoom = MsgType.Highest + 4;
 
         public static short CreateRoom = MsgType.Highest + 5;
 
-        public static short CustomMsgType_RoomInfo = MsgType.Highest + 6;
+        public static short InAndOutAlarm = MsgType.Highest + 6;
     }
     #endregion
 
@@ -42,7 +42,7 @@ public class Message : MonoBehaviour{
         public int clientId;
     }
 
-    public class Msg_GotoChatRoom : MessageBase
+    public class Msg_InAndOutChatRoom : MessageBase
     {
         public int roomNum;
         public int clientId;
@@ -54,10 +54,11 @@ public class Message : MonoBehaviour{
         public int clientId;
     }
 
-    public class MyMessage_RoomInfo : MessageBase
+    public class Msg_InAndOutAlarm : MessageBase
     {
         public string roomName;
         public int roomNum;
+        public int clientId;
     }
 
     #endregion
@@ -94,44 +95,69 @@ public class Message : MonoBehaviour{
         tmpRoom.member = new List<int>();
 
         MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 방 추가
+        MyNetManager.instance.Chatroom[tmpRoom.roomNum].member.Add(msg.clientId); // 채팅방 멤버 추가
 
-        /* 아래가 하는 역할 : 방정보를 클라이언트에게 전달하여 ?? */
+
+        // 자신에게 입장했음을 알린다.
+        Msg_InAndOutAlarm msg_room = new Msg_InAndOutAlarm();
+        msg_room.roomName = MyNetManager.instance.Chatroom[tmpRoom.roomNum].roomName;
+        msg_room.roomNum = tmpRoom.roomNum;
+        msg_room.clientId = msg.clientId;
+
+        NetworkServer.SendToClient(msg.clientId, MyMsgType.InAndOutAlarm, msg_room);
+
+
+        /* 생성된 방을 클라이언트 화면에 출력 (버튼식 방) */
+
+        /* 아래가 하는 역할 : 방정보를 클라이언트에게 전달하여 해당 방으로 클라이언트가 접속하도록 하기위함. */
+
+        /*
         // 방 정보 메시지를 만든다.
-        MyMessage_RoomInfo msg_room = new MyMessage_RoomInfo();
+        Msg_InAndOutAlarm msg_room = new Msg_InAndOutAlarm();
         msg_room.roomName = msg.roomName;
         msg_room.roomNum = tmpRoom.roomNum;
+        msg_room.clientId = msg.clientId;
 
-        // 방을 만들었던 클라이언트에게 방정보 전송
-        NetworkServer.SendToClient(msg.clientId, MyMsgType.CustomMsgType_RoomInfo, msg_room);
+        // 방을 만들었던 클라이언트에게 방정보 전송 -> 무엇때문에?
+        NetworkServer.SendToClient(msg.clientId, MyMsgType.InAndOutAlarm, msg_room);
+        */
 
-        Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "/" + tmpRoom.roomNum);
+        //Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "/" + tmpRoom.roomNum);
     }
 
-    // 채팅방 입장, 퇴장에 대한 처리
-    public static void OnMsgGotoChatRoom(NetworkMessage netMsg)
+    // 채팅방 입,퇴장 관리  (멤버들에게 전달하는 함수를 새로 정의하면 깔끔해지긴 하지만 이해가 어려운건 아니니까. 더 나은 방법이 있다면 수정부탁)
+    public static void OnMsgInAndOutChatRoom(NetworkMessage netMsg)
     {
-        Msg_GotoChatRoom msg = netMsg.ReadMessage<Msg_GotoChatRoom>();
+        Msg_InAndOutChatRoom msg = netMsg.ReadMessage<Msg_InAndOutChatRoom>();
 
-        // Exit에 대한 처리
+        // 해당 방에 접속한 모든 클라이언트에게 접속한 클라이언트를 알린다.
+        Msg_InAndOutAlarm msg_room = new Msg_InAndOutAlarm();
+        msg_room.roomName = MyNetManager.instance.Chatroom[msg.roomNum].roomName;
+        msg_room.roomNum = msg.roomNum;
+        msg_room.clientId = msg.clientId;
+
+        // Out에 대한 처리 (퇴장하는 클라이언트는 음수)
         if (msg.clientId < 0)
         {
-            MyNetManager.instance.Chatroom[msg.roomNum].member.Remove(-msg.clientId);
-            return;
+            // 퇴장한 클라이언트와 같은 방에 접속해있는 클라이언트들에게 알림
+            for (int i = 0; i < MyNetManager.instance.Chatroom[msg.roomNum].member.Count; i++)
+            {
+                NetworkServer.SendToClient(MyNetManager.instance.Chatroom[msg.roomNum].member[i], MyMsgType.InAndOutAlarm, msg_room);
+            }
+
+            // 퇴장하는 클라이언트에게도 전달하기 위해 멤버를 나중에 삭제
+            MyNetManager.instance.Chatroom[msg.roomNum].member.Remove(-msg.clientId); // 채팅방 멤버 삭제
         }
+        else  // In에 대한 처리
+        {
+            MyNetManager.instance.Chatroom[msg.roomNum].member.Add(msg.clientId); // 채팅방 멤버 추가
 
-        // Enter에 대한 처리
-        MyNetManager.instance.Chatroom[msg.roomNum].member.Add(msg.clientId); // 채팅방에 멤버 추가
-
-        // 
-        MyMessage_RoomInfo msg_room = new MyMessage_RoomInfo();
-        msg_room.roomName = MyNetManager.instance.Chatroom[msg.roomNum].roomName;
-        msg_room.roomNum = MyNetManager.instance.Chatroom[msg.roomNum].roomNum;
-        NetworkServer.SendToClient(msg.clientId, MyMsgType.CustomMsgType_RoomInfo, msg_room);
-
-        string temp = "";
-        for (int i = 0; i < MyNetManager.instance.Chatroom[msg.roomNum].member.Count; i++)
-            temp = temp + MyNetManager.instance.Chatroom[msg.roomNum].member[i] + "/";
-        Debug.Log(temp);
+            // 멤버 추가 후 전달
+            for (int i = 0; i < MyNetManager.instance.Chatroom[msg.roomNum].member.Count; i++)
+            {
+                NetworkServer.SendToClient(MyNetManager.instance.Chatroom[msg.roomNum].member[i], MyMsgType.InAndOutAlarm, msg_room);
+            }
+        }
     }
 
     #endregion
@@ -158,46 +184,44 @@ public class Message : MonoBehaviour{
     {
         Msg_Chat msg = netMsg.ReadMessage<Msg_Chat>();
 
-        // 입장, 퇴장에 대해 처리
-        if (msg.strMsg.Equals(":enter:"))
-        {
-            if (msg.clientId != MyNetManager.instance.m_clientId)
-            {
-                MyNetManager.instance.m_chatLog.text += "\n" + msg.clientId.ToString() + " 님이 입장했습니다.";
-            }
-            return;
-        }
-        else if (msg.strMsg.Equals(":out:"))
-        {
-            MyNetManager.instance.m_chatLog.text += "\n" + msg.clientId.ToString() + " 님이 퇴장했습니다.";
-            return;
-        }
-
         // 받은 메시지를 m_chatLog에 출력
         MyNetManager.instance.m_chatLog.text += "\n" + msg.clientId + " : " + msg.strMsg;
         Debug.Log("Sender : " + msg.clientId + " /  Msg : " + msg.strMsg);
     }
 
-    // 클라이언트가 방정보를 받아
-    public static void OnMsgReceiveRoomInfo(NetworkMessage netMsg)
+    // 클라이언트가 방 정보(방이름, 방번호)를 받아 화면에 입,퇴장 메시지 출력
+    public static void OnMsgReceiveInAndOutAlarm(NetworkMessage netMsg)
     {
-        MyMessage_RoomInfo msg = netMsg.ReadMessage<MyMessage_RoomInfo>();
+        Msg_InAndOutAlarm msg = netMsg.ReadMessage<Msg_InAndOutAlarm>();
 
-        // 클라이언트의 현재방을 접속한(생성한) 방으로 변경한다.
-        if (MyNetManager.instance.m_currentRoom != msg.roomNum)
+        if (msg.clientId < 0) // 퇴장하는 클라이언트라면
         {
-            MyNetManager.instance.GotoRoom(msg.roomNum);
+            msg.clientId = -msg.clientId; // 양수로 전환
+
+            // 퇴장하는 클라이언트가 본인이 아니라면
+            if (msg.clientId != MyNetManager.instance.m_clientId)
+            {
+                MyNetManager.instance.m_chatLog.text += "\n" + msg.clientId.ToString() + " 님이 퇴장했습니다.";
+            }
+            else  // 퇴장하는 클라이언트 본인이라면
+            {
+                MyNetManager.instance.m_netInfoPanel.text = "";  /* 이 부분에 뭘 출력해야하지 ? */
+                MyNetManager.instance.m_chatLog.text = ""; // chatLog 초기화
+            }
         }
-        // 입장 메시지를 자신의 화면에 출력.
-        else
+        else // 입장하는 클라이언트라면
         {
-            MyNetManager.instance.m_netInfoPanel.text = msg.roomNum + "번방 / " + msg.roomName;
-            MyNetManager.instance.m_chatLog.text += "\n" + msg.roomName + "에 입장했습니다.";
+            // 입장하는 클라이언트가 본인이 아니라면
+            if (msg.clientId != MyNetManager.instance.m_clientId)
+            {
+                MyNetManager.instance.m_chatLog.text += "\n" + msg.clientId.ToString() + " 님이 입장했습니다.";
+            }
+            else  // 입장하는 클라이언트 본인이라면
+            {
+                MyNetManager.instance.m_netInfoPanel.text = msg.roomNum + "번방 / " + msg.roomName;
+                MyNetManager.instance.m_chatLog.text += "\n" + msg.roomName + "에 입장했습니다.";
+            }
         }
     }
-
-
-
-
     #endregion
 }

@@ -23,6 +23,7 @@ public class MyNetManager : NetworkManager
 		public List<int> member;
 	};
 
+    /* 서버에서 만든 채팅방을 클라이언트들과 동기화 시킨다. */
 	public List<StructChatroom> Chatroom = new List<StructChatroom> ();
 
 
@@ -54,11 +55,8 @@ public class MyNetManager : NetworkManager
         base.OnStartServer();
         NetworkServer.RegisterHandler(MsgType.Connect, OnConnected);
         NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatOnServer);
-        //NetworkServer.RegisterHandler(Message.MyMsgType.AssignClientId, Message.OnMsgAssignClientId);
-        //NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
-        NetworkServer.RegisterHandler(Message.MyMsgType.GoToChatRoom, Message.OnMsgGotoChatRoom);
+        NetworkServer.RegisterHandler(Message.MyMsgType.InAndOutChatRoom, Message.OnMsgInAndOutChatRoom);
         NetworkServer.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
-        //NetworkServer.RegisterHandler(Message.MyMsgType.CustomMsgType_RoomInfo, Message.OnMsgReceiveRoomInfo);
         Debug.Log("OnStartServer( )");
 
         /*if (NetworkServer.active)
@@ -98,12 +96,9 @@ public class MyNetManager : NetworkManager
     public override void OnStartClient(NetworkClient client)
     {
         base.OnStartClient(client);
-        //client.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatOnServer);
         client.RegisterHandler(Message.MyMsgType.AssignClientId, Message.OnMsgAssignClientId);
         client.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
-        //client.RegisterHandler(Message.MyMsgType.GoToChatRoom, Message.OnMsgGotoChatRoom);
-        //client.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
-        client.RegisterHandler(Message.MyMsgType.CustomMsgType_RoomInfo, Message.OnMsgReceiveRoomInfo);
+        client.RegisterHandler(Message.MyMsgType.InAndOutAlarm, Message.OnMsgReceiveInAndOutAlarm);
 
         m_client = client;
 
@@ -133,48 +128,32 @@ public class MyNetManager : NetworkManager
         msg.roomName = roomstr;
         msg.clientId = m_clientId;
         m_client.Send(Message.MyMsgType.CreateRoom, msg);
+
+        /*해당 방으로 이동*/
+        // GotoRoom(방번호) 방번호에 해당되는 값을 서버에서 어떻게 가져올수있을까..?
+        // 혹은 서버에서 해당 클라이언트에게 GotoRoom을 실행하도록 하는 간단한 방법이 있을까?
     }
 
     // Enter 버튼 클릭시 
     public void GotoRoom(int RoomNum)
     {
         // 입력한 방으로 접속
-        Message.Msg_GotoChatRoom msg = new Message.Msg_GotoChatRoom();
+        Message.Msg_InAndOutChatRoom msg = new Message.Msg_InAndOutChatRoom();
         msg.roomNum = RoomNum;
         msg.clientId = m_clientId;
-        m_client.Send(Message.MyMsgType.GoToChatRoom, msg);
+        m_client.Send(Message.MyMsgType.InAndOutChatRoom, msg);
 
-        // 자신의 방 초기화
+        // 자신의 방 초기화 (CreateRoom의 경우에도 여기서 초기화됨.)
         m_currentRoom = RoomNum;
-
-        // 입장 메시지 전달(다른 클라이언트들에게 입장했음을 알림.)
-        Message.Msg_Chat hellomsg = new Message.Msg_Chat();
-        hellomsg.roomNum = m_currentRoom;
-        hellomsg.clientId = m_clientId;
-        hellomsg.strMsg = ":enter:";
-        m_client.Send(Message.MyMsgType.SendChatToServer, hellomsg);
     }
 
     // Exit 버튼
     public void ExitRoom(int RoomNum)
     {
-        Message.Msg_GotoChatRoom msg = new Message.Msg_GotoChatRoom();
+        Message.Msg_InAndOutChatRoom msg = new Message.Msg_InAndOutChatRoom();
         msg.roomNum = RoomNum;
-        msg.clientId = -m_clientId;  // 클라이언트ID를 음수로 바꾼다.
-        m_client.Send(Message.MyMsgType.GoToChatRoom, msg);
-
-        //Text temp = transform.GetChild (0).GetChild (1).GetComponent<Text> ();
-        //temp.text = temp.text + "\n" + m_currentRoom + " 번방에서 퇴장했습니다.";
-        
-
-        Text RoomInfo = transform.GetChild(0).GetChild(0).GetComponent<Text>();
-        RoomInfo.text = "로비";
-
-        Message.Msg_Chat exitmsg = new Message.Msg_Chat();
-        exitmsg.roomNum = m_currentRoom;
-        exitmsg.clientId = m_clientId;
-        exitmsg.strMsg = ":out:";
-        m_client.Send(Message.MyMsgType.SendChatToServer, exitmsg);
+        msg.clientId = -m_clientId;  // 클라이언트ID에 음수를 붙여 전달.
+        m_client.Send(Message.MyMsgType.InAndOutChatRoom, msg);
 
         m_currentRoom = -1;
     }
@@ -187,4 +166,5 @@ public class MyNetManager : NetworkManager
 		//Debug.Log ("Index : " + Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.RoomName == str)));
 		return Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.roomName == str));
 	}*/
+   
 }
