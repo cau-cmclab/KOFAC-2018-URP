@@ -13,17 +13,20 @@ public class Message : MonoBehaviour{
     public class MyMsgType
     {
         // Msg_AssignClientId
-        public static short AssignClientId = MsgType.Highest + 1;
+        public const short AssignClientId = MsgType.Highest + 1;
         // Msg_Chat
-        public static short SendChatToServer = MsgType.Highest + 2;
+        public const short SendChatToServer = MsgType.Highest + 2;
         // Msg_Chat
-        public static short SendChatToClient = MsgType.Highest + 3;
+        public const short SendChatToClient = MsgType.Highest + 3;
         // 
-        public static short InAndOutChatRoom = MsgType.Highest + 4;
+        public const short InAndOutChatRoom = MsgType.Highest + 4;
 
-        public static short CreateRoom = MsgType.Highest + 5;
+        public const short CreateRoom = MsgType.Highest + 5;
 
-        public static short InAndOutAlarm = MsgType.Highest + 6;
+        public const short InAndOutAlarm = MsgType.Highest + 6;
+
+        public const short ChatRoomInfo = MsgType.Highest + 7;
+
     }
     #endregion
 
@@ -61,6 +64,27 @@ public class Message : MonoBehaviour{
         public int clientId;
     }
 
+    /* 메시지에는 구조체나 배열은 포함가능, 하지만 List는 제네릭이라서 불가함.*/
+    public class Msg_ChatRoomInfo : MessageBase
+    {
+        public string[] roomName;
+        public int[] roomNum;
+        public int[] memberCount;  // 인원수
+
+        public int clientId;
+
+        // 생성자
+        public Msg_ChatRoomInfo()
+        {
+            // 채팅방 개수만큼 생성
+            roomName = new string[MyNetManager.instance.Chatroom.Count];
+            roomNum = new int[MyNetManager.instance.Chatroom.Count];
+            memberCount = new int[MyNetManager.instance.Chatroom.Count];
+
+            // clientId는 클라이언트로부터 받음
+        }
+    }
+
     #endregion
 
 
@@ -95,6 +119,10 @@ public class Message : MonoBehaviour{
         tmpRoom.member = new List<int>();
 
         MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 방 추가
+
+
+        /* 잘 작동함. 현재는 CreateRoom은 방생성만하고, 실제 이동은 GotoRoom에서 이루어지도록 설계.
+         * 아래 문장은 CreateRoom을 통해서도 바로 입장하도록 하기위함인데, 아직 수정중.
         MyNetManager.instance.Chatroom[tmpRoom.roomNum].member.Add(msg.clientId); // 채팅방 멤버 추가
 
 
@@ -105,24 +133,11 @@ public class Message : MonoBehaviour{
         msg_room.clientId = msg.clientId;
 
         NetworkServer.SendToClient(msg.clientId, MyMsgType.InAndOutAlarm, msg_room);
-
+        */
+        
 
         /* 생성된 방을 클라이언트 화면에 출력 (버튼식 방) */
 
-        /* 아래가 하는 역할 : 방정보를 클라이언트에게 전달하여 해당 방으로 클라이언트가 접속하도록 하기위함. */
-
-        /*
-        // 방 정보 메시지를 만든다.
-        Msg_InAndOutAlarm msg_room = new Msg_InAndOutAlarm();
-        msg_room.roomName = msg.roomName;
-        msg_room.roomNum = tmpRoom.roomNum;
-        msg_room.clientId = msg.clientId;
-
-        // 방을 만들었던 클라이언트에게 방정보 전송 -> 무엇때문에?
-        NetworkServer.SendToClient(msg.clientId, MyMsgType.InAndOutAlarm, msg_room);
-        */
-
-        //Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "/" + tmpRoom.roomNum);
     }
 
     // 채팅방 입,퇴장 관리  (멤버들에게 전달하는 함수를 새로 정의하면 깔끔해지긴 하지만 이해가 어려운건 아니니까. 더 나은 방법이 있다면 수정부탁)
@@ -135,8 +150,9 @@ public class Message : MonoBehaviour{
         msg_room.roomName = MyNetManager.instance.Chatroom[msg.roomNum].roomName;
         msg_room.roomNum = msg.roomNum;
         msg_room.clientId = msg.clientId;
-
+        
         // Out에 대한 처리 (퇴장하는 클라이언트는 음수)
+        
         if (msg.clientId < 0)
         {
             // 퇴장한 클라이언트와 같은 방에 접속해있는 클라이언트들에게 알림
@@ -158,6 +174,22 @@ public class Message : MonoBehaviour{
                 NetworkServer.SendToClient(MyNetManager.instance.Chatroom[msg.roomNum].member[i], MyMsgType.InAndOutAlarm, msg_room);
             }
         }
+    }
+    // 서버의 채팅방을 복사해 클라이언트에게 전달
+    public static void OnMsgChatRoomInfoOnServer(NetworkMessage netMsg)
+    {
+        Msg_ChatRoomInfo msg = netMsg.ReadMessage<Msg_ChatRoomInfo>();
+
+        Msg_ChatRoomInfo InfoMsg = new Msg_ChatRoomInfo();
+
+
+        for (int i = 0; i < MyNetManager.instance.Chatroom.Count; i++) {
+            InfoMsg.roomName[i] = MyNetManager.instance.Chatroom[i].roomName;
+            InfoMsg.roomNum[i] = MyNetManager.instance.Chatroom[i].roomNum;
+            InfoMsg.memberCount[i] = MyNetManager.instance.Chatroom[i].member.Count;
+        }
+
+        NetworkServer.SendToClient(msg.clientId, MyMsgType.ChatRoomInfo, InfoMsg);
     }
 
     #endregion
@@ -223,5 +255,27 @@ public class Message : MonoBehaviour{
             }
         }
     }
+
+    public static void OnMsgChatRoomInfoOnClient(NetworkMessage netMsg)
+    {
+        Msg_ChatRoomInfo InfoMsg = netMsg.ReadMessage<Msg_ChatRoomInfo>();
+
+        for (int i = 0; i < InfoMsg.roomName.Length; i++)
+        {
+            // 방 정보를 갖는 구조체를 만든다.
+            MyNetManager.StructChatroom tmpRoom = new MyNetManager.StructChatroom();
+            tmpRoom.roomName = InfoMsg.roomName[i];
+            tmpRoom.roomNum = InfoMsg.roomNum[i];
+            tmpRoom.memberCount = InfoMsg.memberCount[i];  // 현재 방에 접속한 멤버가 누구인지 까지는 필요하지 않음.
+                                                                
+            MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 방 추가
+        }
+
+        Debug.Log(MyNetManager.instance.Chatroom.Count + "개의 채팅방이 존재함. ");
+        Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "번 채팅방의 이름은 " + MyNetManager.instance.Chatroom[0].roomName + "이며, " + MyNetManager.instance.Chatroom[0].memberCount + "명이 접속중임. ");
+
+    }
+
+
     #endregion
 }

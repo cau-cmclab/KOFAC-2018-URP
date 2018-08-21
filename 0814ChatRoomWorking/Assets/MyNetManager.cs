@@ -20,10 +20,14 @@ public class MyNetManager : NetworkManager
 	{
 		public string roomName;
 		public int roomNum;
-		public List<int> member;
+        public List<int> member;
+
+        /* ChatRoomInfo에서 멤버 인원수를 저장하기 위한 변수임.
+         * 오직 클라이언트에서만 활용하며 개설된 채팅방의 인원수를 알기위함이니 사용할 필요 없음. */
+        public int memberCount;
 	};
 
-    /* 서버에서 만든 채팅방을 클라이언트들과 동기화 시킨다. */
+    /* 서버에서 만든 채팅방을 클라이언트와 동기화 시켜야한다. */
 	public List<StructChatroom> Chatroom = new List<StructChatroom> ();
 
 
@@ -57,6 +61,8 @@ public class MyNetManager : NetworkManager
         NetworkServer.RegisterHandler(Message.MyMsgType.SendChatToServer, Message.OnMsgReceiveChatOnServer);
         NetworkServer.RegisterHandler(Message.MyMsgType.InAndOutChatRoom, Message.OnMsgInAndOutChatRoom);
         NetworkServer.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
+        NetworkServer.RegisterHandler(Message.MyMsgType.ChatRoomInfo, Message.OnMsgChatRoomInfoOnServer);
+
         Debug.Log("OnStartServer( )");
 
         /*if (NetworkServer.active)
@@ -99,6 +105,8 @@ public class MyNetManager : NetworkManager
         client.RegisterHandler(Message.MyMsgType.AssignClientId, Message.OnMsgAssignClientId);
         client.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
         client.RegisterHandler(Message.MyMsgType.InAndOutAlarm, Message.OnMsgReceiveInAndOutAlarm);
+        client.RegisterHandler(Message.MyMsgType.ChatRoomInfo, Message.OnMsgChatRoomInfoOnClient);
+
 
         m_client = client;
 
@@ -130,7 +138,7 @@ public class MyNetManager : NetworkManager
         m_client.Send(Message.MyMsgType.CreateRoom, msg);
 
         /*해당 방으로 이동*/
-        // GotoRoom(방번호) 방번호에 해당되는 값을 서버에서 어떻게 가져올수있을까..?
+        // 생성한 방번호를 서버에서 어떻게 가져올수있을까..?
         // 혹은 서버에서 해당 클라이언트에게 GotoRoom을 실행하도록 하는 간단한 방법이 있을까?
     }
 
@@ -144,6 +152,10 @@ public class MyNetManager : NetworkManager
         m_client.Send(Message.MyMsgType.InAndOutChatRoom, msg);
 
         // 자신의 방 초기화 (CreateRoom의 경우에도 여기서 초기화됨.)
+        /* 기존에는 CreateRoom에서 메시지를 통해 GotoRoom도 실행하도록 해서 자동으로 
+           방에 참가하는 방식이었는데, 이유는 클라이언트가 생성된 방번호나 방목록을 알 수 없기때문이었음.
+           여전히 지금도 방이만들어지면 클라이언트는 방번호를 입력해 참가해야하는 방식임. 여기서 필요한건 
+           방 목록을 클라이언트에게 전송하는 메시지가 필요하다는것.*/
         m_currentRoom = RoomNum;
     }
 
@@ -166,5 +178,13 @@ public class MyNetManager : NetworkManager
 		//Debug.Log ("Index : " + Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.RoomName == str)));
 		return Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.roomName == str));
 	}*/
+
+    public void FindRoom()
+    {
+        Message.Msg_ChatRoomInfo msg = new Message.Msg_ChatRoomInfo();
+        msg.clientId = m_clientId;
+        m_client.Send(Message.MyMsgType.ChatRoomInfo, msg);
+    }
+    
    
 }

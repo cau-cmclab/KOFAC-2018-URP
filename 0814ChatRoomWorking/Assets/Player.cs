@@ -87,5 +87,10 @@ public class Player : NetworkBehaviour {
 		MyNetManager.instance.ExitRoom (int.Parse(m_roomNum.text));
 	}
 
+    [Command]
+    public void CmdFindRoom()
+    {
+        MyNetManager.instance.FindRoom();
+    }
 
 }
