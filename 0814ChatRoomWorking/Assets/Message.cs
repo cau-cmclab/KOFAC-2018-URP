@@ -80,8 +80,6 @@ public class Message : MonoBehaviour{
             roomName = new string[MyNetManager.instance.Chatroom.Count];
             roomNum = new int[MyNetManager.instance.Chatroom.Count];
             memberCount = new int[MyNetManager.instance.Chatroom.Count];
-
-            // clientId는 클라이언트로부터 받음
         }
     }
 
@@ -119,25 +117,6 @@ public class Message : MonoBehaviour{
         tmpRoom.member = new List<int>();
 
         MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 방 추가
-
-
-        /* 잘 작동함. 현재는 CreateRoom은 방생성만하고, 실제 이동은 GotoRoom에서 이루어지도록 설계.
-         * 아래 문장은 CreateRoom을 통해서도 바로 입장하도록 하기위함인데, 아직 수정중.
-        MyNetManager.instance.Chatroom[tmpRoom.roomNum].member.Add(msg.clientId); // 채팅방 멤버 추가
-
-
-        // 자신에게 입장했음을 알린다.
-        Msg_InAndOutAlarm msg_room = new Msg_InAndOutAlarm();
-        msg_room.roomName = MyNetManager.instance.Chatroom[tmpRoom.roomNum].roomName;
-        msg_room.roomNum = tmpRoom.roomNum;
-        msg_room.clientId = msg.clientId;
-
-        NetworkServer.SendToClient(msg.clientId, MyMsgType.InAndOutAlarm, msg_room);
-        */
-        
-
-        /* 생성된 방을 클라이언트 화면에 출력 (버튼식 방) */
-
     }
 
     // 채팅방 입,퇴장 관리  (멤버들에게 전달하는 함수를 새로 정의하면 깔끔해지긴 하지만 이해가 어려운건 아니니까. 더 나은 방법이 있다면 수정부탁)
@@ -272,14 +251,34 @@ public class Message : MonoBehaviour{
             roomInfo.roomName = InfoMsg.roomName[i];
             roomInfo.roomNum = InfoMsg.roomNum[i];
             roomInfo.memberCount = InfoMsg.memberCount[i];  // 현재 방에 접속한 멤버가 누구인지 까지는 필요하지 않고 인원수만 가져온다.
-                                                            /* 인원수만 가져오는 이유는,, 접속한 인원 목록까지 가져오고 싶지만 메시지로 List를 전달할 수 없어서 2차원배열을 사용하기보다 단순하게 사용하기 위해 인원수(1차원 배열)만 가져온다.
-                                                             * 추후 변경하는 것도 고려해볼수있음*/
+                                                            /* 인원수만 가져오는 이유는 접속한 인원 목록까지 가져오고 싶지만 메시지로 List를 전달할 수 없어서 2차원배열을 사용하기보다 단순하게 사용하기 위해 인원수(1차원 배열)만 가져온다.
+                                                             * 추후 변경하는 것도 고려해볼수있음 */
                                                                 
             MyNetManager.instance.Chatroom.Add(roomInfo); // 채팅방 목록에 방 추가
         }
 
+        /* 현재 개설된 방을 클라이언트 화면에 출력 */
+
+        /*
         Debug.Log(MyNetManager.instance.Chatroom.Count + "개의 채팅방이 존재함. ");
         Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "번 채팅방의 이름은 " + MyNetManager.instance.Chatroom[0].roomName + "이며, " + MyNetManager.instance.Chatroom[0].memberCount + "명이 접속중임. ");
+        */
+
+        
+
+        // 만들어진 방이 한개라도 있다면 모든 방 삭제
+        while (MyNetManager.instance.m_roomListContent.transform.childCount > 0)
+        {
+            Destroy(MyNetManager.instance.m_roomListContent.transform.GetChild(0));
+        }
+
+        // 최신화된 채팅방 정보로 채팅방 생성
+        for (int i = 0; i < MyNetManager.instance.Chatroom.Count; i++)
+        {
+            Button newChatRoom = Instantiate(MyNetManager.instance.m_chatRoomBtnPrfb);
+            newChatRoom.transform.SetParent(MyNetManager.instance.m_roomListContent.transform);
+        }
+        
     }
 
 

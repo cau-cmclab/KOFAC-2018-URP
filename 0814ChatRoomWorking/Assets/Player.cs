@@ -7,8 +7,9 @@ using UnityEngine.Networking;
 public class Player : NetworkBehaviour {
     public InputField m_chatField;  // 채팅 입력창. m_chatField.text는 채팅내용
 
-    public Text m_roomName;
+    public Text m_newRoomName; // 생성하는 방 이름
 	public Text m_roomNum;
+    public GameObject m_roomListContent; // 플레이어의 채팅방 리스트
 
     public GameObject m_canvas;
     public GameObject m_player;  // cowboy object
@@ -21,10 +22,13 @@ public class Player : NetworkBehaviour {
 
     void Start(){
         // 리모트 플레이어라면 캔버스 비활성화.
-		if (!isLocalPlayer)
-			m_canvas.SetActive (false);
-		else
-			CmdGetId ();
+        if (!isLocalPlayer)
+            m_canvas.SetActive(false);
+        else
+        {
+            CmdGetId();
+            MyNetManager.instance.m_roomListContent = this.m_roomListContent;
+        }
 	}
 
 	void Update () {
@@ -76,7 +80,7 @@ public class Player : NetworkBehaviour {
     //[Command]
     public void CmdCreateRoom()
     {
-        MyNetManager.instance.CreateRoom(m_roomName.text);
+        MyNetManager.instance.CreateRoom(m_newRoomName.text);
     }
 
     // Enter버튼 클릭시
@@ -90,10 +94,10 @@ public class Player : NetworkBehaviour {
 		MyNetManager.instance.ExitRoom (int.Parse(m_roomNum.text));
 	}
 
-    [Command]
-    public void CmdFindRoom()
+    // 방 목록 새로고침
+    public void RefreshRoom()
     {
-        MyNetManager.instance.FindRoom();
+        MyNetManager.instance.RefreshRoom();
     }
 
 }

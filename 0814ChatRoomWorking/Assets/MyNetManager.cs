@@ -15,6 +15,9 @@ public class MyNetManager : NetworkManager
     public GameObject m_startServer;
     public GameObject m_startClient;
     public Text m_netInfoPanel; // 네트워크 정보 메시지
+
+    public Button m_chatRoomBtnPrfb; // 채팅방 버튼 프리팹
+    public GameObject m_roomListContent; // 플레이어의 채팅방 리스트
     
 	public struct StructChatroom
 	{
@@ -28,7 +31,6 @@ public class MyNetManager : NetworkManager
         public int memberCount;
 	};
 
-    /* 서버에서 만든 채팅방을 클라이언트와 동기화 시켜야한다. */
 	public List<StructChatroom> Chatroom = new List<StructChatroom> ();
 
 
@@ -141,6 +143,8 @@ public class MyNetManager : NetworkManager
         /*해당 방으로 이동*/
         // 생성한 방번호를 서버에서 어떻게 가져올수있을까..?
         // 혹은 서버에서 해당 클라이언트에게 GotoRoom을 실행하도록 하는 간단한 방법이 있을까?
+        Debug.Log("채팅방 생성");
+        //RefreshRoom();
     }
 
     // Enter 버튼 클릭시 
@@ -180,12 +184,12 @@ public class MyNetManager : NetworkManager
 		return Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.roomName == str));
 	}*/
 
-    public void FindRoom()
+    public void RefreshRoom()
     {
+        // 채팅방 정보 요청
         Message.Msg_ChatRoomInfo msg = new Message.Msg_ChatRoomInfo();
         msg.clientId = m_clientId;
         m_client.Send(Message.MyMsgType.ChatRoomInfo, msg);
     }
-    
    
 }
