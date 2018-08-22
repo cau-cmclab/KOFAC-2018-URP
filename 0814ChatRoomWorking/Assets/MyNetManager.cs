@@ -15,15 +15,16 @@ public class MyNetManager : NetworkManager
     public GameObject m_startServer;
     public GameObject m_startClient;
     public Text m_netInfoPanel; // 네트워크 정보 메시지
-
+    
 	public struct StructChatroom
 	{
 		public string roomName;
 		public int roomNum;
         public List<int> member;
 
-        /* ChatRoomInfo에서 멤버 인원수를 저장하기 위한 변수임.
-         * 오직 클라이언트에서만 활용하며 개설된 채팅방의 인원수를 알기위함이니 사용할 필요 없음. */
+        /* ChatRoomInfo 메시지에서 채팅방 인원수를 활용하기 위한 변수임.
+         * 오직 클라이언트에서 채팅방의 인원수를 알기위함이니 
+         * 서버에서는 member.Count를 이용하면 됨. */
         public int memberCount;
 	};
 

@@ -2132,12 +2132,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69841c62e58bd3443a0fc36de6f9678c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_chat: {fileID: 114216847805456622}
+  m_chatField: {fileID: 114485205767702162}
   m_roomName: {fileID: 114924849438802478}
   m_roomNum: {fileID: 114339446919184524}
   m_canvas: {fileID: 1311126186730016}
   m_player: {fileID: 1845403517385716}
-  m_chatField: {fileID: 1222330875944156}
   m_sendMsgButton: {fileID: 1971872548684406}
   m_currentRoom: 0
 --- !u!114 &114216847805456622
@@ -3412,7 +3411,7 @@ RectTransform:
   m_Children:
   - {fileID: 224086893310112152}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 6
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3449,7 +3448,7 @@ RectTransform:
   m_Children:
   - {fileID: 224527292867823414}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3486,7 +3485,7 @@ RectTransform:
   m_Children:
   - {fileID: 224224267795827240}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 2
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3506,7 +3505,7 @@ RectTransform:
   - {fileID: 224613158504675862}
   - {fileID: 224630108550115956}
   m_Father: {fileID: 224665956825474744}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3617,11 +3616,11 @@ RectTransform:
   m_Children:
   - {fileID: 224475664123214378}
   - {fileID: 224776442208468234}
-  - {fileID: 224389615705491884}
   - {fileID: 224422592804326040}
-  - {fileID: 224668236242673998}
-  - {fileID: 224332383139949068}
   - {fileID: 224308485686345392}
+  - {fileID: 224668236242673998}
+  - {fileID: 224389615705491884}
+  - {fileID: 224332383139949068}
   - {fileID: 224123953695259050}
   m_Father: {fileID: 4140397886673270}
   m_RootOrder: 0

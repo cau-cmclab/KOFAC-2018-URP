@@ -5,14 +5,13 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour {
-	public Text m_chat;  // 보내려는 채팅 내용
+    public InputField m_chatField;  // 채팅 입력창. m_chatField.text는 채팅내용
+
     public Text m_roomName;
 	public Text m_roomNum;
 
-    // 활성화, 비활성화를 위한 변수
     public GameObject m_canvas;
     public GameObject m_player;  // cowboy object
-    public GameObject m_chatField;  // 채팅 입력창
     public GameObject m_sendMsgButton;
 
 	[SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다.
@@ -28,10 +27,10 @@ public class Player : NetworkBehaviour {
 			CmdGetId ();
 	}
 
-	// Update is called once per frame
 	void Update () {
+        // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
 		if (!isLocalPlayer) {
-			if (this.m_currentRoom != MyNetManager.instance.m_currentRoom)
+			if (m_currentRoom != MyNetManager.instance.m_currentRoom)
 				m_player.SetActive (false);
 			else
 				m_player.SetActive (true);
@@ -40,10 +39,10 @@ public class Player : NetworkBehaviour {
 
         // 방에 입장하지 않은 상태라면 메시지 보내는 버튼 비활성화
 		if (m_currentRoom == -1) {
-			m_chatField.SetActive (false);
+			m_chatField.gameObject.SetActive (false);
 			m_sendMsgButton.SetActive (false);
 		} else {
-            m_chatField.SetActive(true);
+            m_chatField.gameObject.SetActive(true);
             m_sendMsgButton.SetActive(true);
         }
 
@@ -61,7 +60,11 @@ public class Player : NetworkBehaviour {
 
     // 서버로 채팅 메시지 전송
 	public void SendMes(){
-		MyNetManager.instance.SendToServer (m_chat.text);
+        if (m_chatField.text.Equals(""))
+            return;
+
+        MyNetManager.instance.SendToServer(m_chatField.text);
+        m_chatField.text = "";
 	}
 
     [Command]

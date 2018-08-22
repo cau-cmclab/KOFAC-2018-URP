@@ -256,24 +256,30 @@ public class Message : MonoBehaviour{
         }
     }
 
+    // 클라이언트에서는 채팅방 목록, 이름, 접속인원수 만 관리한다. 
     public static void OnMsgChatRoomInfoOnClient(NetworkMessage netMsg)
     {
         Msg_ChatRoomInfo InfoMsg = netMsg.ReadMessage<Msg_ChatRoomInfo>();
 
-        for (int i = 0; i < InfoMsg.roomName.Length; i++)
+        // 채팅방 정보를 새로 담기위해 초기화시킨다.
+        MyNetManager.instance.Chatroom.Clear();
+
+        // 개설된 방 개수 만큼 정보를 받는다.
+        for (int i = 0; i < InfoMsg.roomNum.Length; i++)
         {
             // 방 정보를 갖는 구조체를 만든다.
-            MyNetManager.StructChatroom tmpRoom = new MyNetManager.StructChatroom();
-            tmpRoom.roomName = InfoMsg.roomName[i];
-            tmpRoom.roomNum = InfoMsg.roomNum[i];
-            tmpRoom.memberCount = InfoMsg.memberCount[i];  // 현재 방에 접속한 멤버가 누구인지 까지는 필요하지 않음.
+            MyNetManager.StructChatroom roomInfo = new MyNetManager.StructChatroom();
+            roomInfo.roomName = InfoMsg.roomName[i];
+            roomInfo.roomNum = InfoMsg.roomNum[i];
+            roomInfo.memberCount = InfoMsg.memberCount[i];  // 현재 방에 접속한 멤버가 누구인지 까지는 필요하지 않고 인원수만 가져온다.
+                                                            /* 인원수만 가져오는 이유는,, 접속한 인원 목록까지 가져오고 싶지만 메시지로 List를 전달할 수 없어서 2차원배열을 사용하기보다 단순하게 사용하기 위해 인원수(1차원 배열)만 가져온다.
+                                                             * 추후 변경하는 것도 고려해볼수있음*/
                                                                 
-            MyNetManager.instance.Chatroom.Add(tmpRoom); // 채팅방 목록에 방 추가
+            MyNetManager.instance.Chatroom.Add(roomInfo); // 채팅방 목록에 방 추가
         }
 
         Debug.Log(MyNetManager.instance.Chatroom.Count + "개의 채팅방이 존재함. ");
         Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "번 채팅방의 이름은 " + MyNetManager.instance.Chatroom[0].roomName + "이며, " + MyNetManager.instance.Chatroom[0].memberCount + "명이 접속중임. ");
-
     }
 
 
