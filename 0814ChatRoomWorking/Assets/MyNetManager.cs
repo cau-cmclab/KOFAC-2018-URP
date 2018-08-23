@@ -8,7 +8,7 @@ public class MyNetManager : NetworkManager
 {
     public NetworkClient m_client;
 	public int m_clientId;
-	public int m_currentRoom = -1; // 로컬 플레이어가 접속한 방
+	public int m_currentRoom = -1; // 로컬 플레이어가 접속한 방. 로비는 -1임(방에 접속하지 않은 상태).
 	public int m_roomCount = 0; // 방을 만들때마다 올라간다.
 
 	public Text m_chatLog;  // 채팅 내역
@@ -140,49 +140,48 @@ public class MyNetManager : NetworkManager
         msg.clientId = m_clientId;
         m_client.Send(Message.MyMsgType.CreateRoom, msg);
 
-        /*해당 방으로 이동*/
-        // 생성한 방번호를 서버에서 어떻게 가져올수있을까..?
-        // 혹은 서버에서 해당 클라이언트에게 GotoRoom을 실행하도록 하는 간단한 방법이 있을까?
-        Debug.Log("채팅방 생성");
-        //RefreshRoom();
+        RefreshRoom();
     }
 
-    // Enter 버튼 클릭시 
+    // 채팅방 버튼 클릭시
     public void GotoRoom(int RoomNum)
     {
+        // 이미 접속해 있다면
+        if(m_currentRoom != -1)
+        {
+            m_netInfoPanel.text = "방에서 나간 후에 입장하세요. ";
+            return;
+        }
+
         // 입력한 방으로 접속
         Message.Msg_InAndOutChatRoom msg = new Message.Msg_InAndOutChatRoom();
         msg.roomNum = RoomNum;
         msg.clientId = m_clientId;
         m_client.Send(Message.MyMsgType.InAndOutChatRoom, msg);
 
-        // 자신의 방 초기화 (CreateRoom의 경우에도 여기서 초기화됨.)
-        /* 기존에는 CreateRoom에서 메시지를 통해 GotoRoom도 실행하도록 해서 자동으로 
-           방에 참가하는 방식이었는데, 이유는 클라이언트가 생성된 방번호나 방목록을 알 수 없기때문이었음.
-           여전히 지금도 방이만들어지면 클라이언트는 방번호를 입력해 참가해야하는 방식임. 여기서 필요한건 
-           방 목록을 클라이언트에게 전송하는 메시지가 필요하다는것.*/
         m_currentRoom = RoomNum;
+
+        RefreshRoom();
     }
 
     // Exit 버튼
     public void ExitRoom(int RoomNum)
     {
+        if(m_currentRoom == -1)
+        {
+            m_netInfoPanel.text = "입장중인 채팅방이 없습니다.";
+            return;
+        }
+
         Message.Msg_InAndOutChatRoom msg = new Message.Msg_InAndOutChatRoom();
         msg.roomNum = RoomNum;
         msg.clientId = -m_clientId;  // 클라이언트ID에 음수를 붙여 전달.
         m_client.Send(Message.MyMsgType.InAndOutChatRoom, msg);
 
         m_currentRoom = -1;
+
+        RefreshRoom();
     }
-
-    #endregion
-
-    // 수정중
-    /*
-	public int GetRoomNum(string str){
-		//Debug.Log ("Index : " + Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.RoomName == str)));
-		return Chatroom.IndexOf(Chatroom.Find (StructChatroom => StructChatroom.roomName == str));
-	}*/
 
     public void RefreshRoom()
     {
@@ -191,5 +190,7 @@ public class MyNetManager : NetworkManager
         msg.clientId = m_clientId;
         m_client.Send(Message.MyMsgType.ChatRoomInfo, msg);
     }
-   
+
+    #endregion
+
 }

@@ -64,7 +64,7 @@ public class Message : MonoBehaviour{
         public int clientId;
     }
 
-    /* 메시지에는 구조체나 배열은 포함가능, 하지만 List는 제네릭이라서 불가함.*/
+    /* 메시지에는 구조체나 배열은 포함가능, 하지만 List는 제네릭이라서 불가함. */
     public class Msg_ChatRoomInfo : MessageBase
     {
         public string[] roomName;
@@ -130,9 +130,8 @@ public class Message : MonoBehaviour{
         msg_room.roomNum = msg.roomNum;
         msg_room.clientId = msg.clientId;
         
-        // Out에 대한 처리 (퇴장하는 클라이언트는 음수)
         
-        if (msg.clientId < 0)
+        if (msg.clientId < 0)  // Out에 대한 처리 (퇴장하는 클라이언트는 음수)
         {
             // 퇴장한 클라이언트와 같은 방에 접속해있는 클라이언트들에게 알림
             for (int i = 0; i < MyNetManager.instance.Chatroom[msg.roomNum].member.Count; i++)
@@ -140,7 +139,7 @@ public class Message : MonoBehaviour{
                 NetworkServer.SendToClient(MyNetManager.instance.Chatroom[msg.roomNum].member[i], MyMsgType.InAndOutAlarm, msg_room);
             }
 
-            // 퇴장하는 클라이언트에게도 전달하기 위해 멤버를 나중에 삭제
+            /* 퇴장하는 클라이언트에게도 전달하기 위해 멤버를 나중에 삭제한다. */
             MyNetManager.instance.Chatroom[msg.roomNum].member.Remove(-msg.clientId); // 채팅방 멤버 삭제
         }
         else  // In에 대한 처리
@@ -154,6 +153,7 @@ public class Message : MonoBehaviour{
             }
         }
     }
+
     // 서버의 채팅방을 복사해 클라이언트에게 전달
     public static void OnMsgChatRoomInfoOnServer(NetworkMessage netMsg)
     {
@@ -187,7 +187,7 @@ public class Message : MonoBehaviour{
     }
 
     /// <summary>
-    /// 서버로부터 받은 메시지 처리
+    /// 서버로부터 받은 채팅 메시지 처리
     /// </summary>
     /// <param name="netMsg"></param>
     // SendChatToClient에 대한 콜백함수
@@ -216,7 +216,7 @@ public class Message : MonoBehaviour{
             }
             else  // 퇴장하는 클라이언트 본인이라면
             {
-                MyNetManager.instance.m_netInfoPanel.text = "";  /* 이 부분에 뭘 출력해야하지 ? */
+                MyNetManager.instance.m_netInfoPanel.text = "방에서 퇴장하였습니다.";  /* 이 부분에 뭘 출력해야하지 ? */
                 MyNetManager.instance.m_chatLog.text = ""; // chatLog 초기화
             }
         }
@@ -235,7 +235,7 @@ public class Message : MonoBehaviour{
         }
     }
 
-    // 클라이언트에서는 채팅방 목록, 이름, 접속인원수 만 관리한다. 
+    // 채팅방 목록 최신화
     public static void OnMsgChatRoomInfoOnClient(NetworkMessage netMsg)
     {
         Msg_ChatRoomInfo InfoMsg = netMsg.ReadMessage<Msg_ChatRoomInfo>();
@@ -251,34 +251,41 @@ public class Message : MonoBehaviour{
             roomInfo.roomName = InfoMsg.roomName[i];
             roomInfo.roomNum = InfoMsg.roomNum[i];
             roomInfo.memberCount = InfoMsg.memberCount[i];  // 현재 방에 접속한 멤버가 누구인지 까지는 필요하지 않고 인원수만 가져온다.
-                                                            /* 인원수만 가져오는 이유는 접속한 인원 목록까지 가져오고 싶지만 메시지로 List를 전달할 수 없어서 2차원배열을 사용하기보다 단순하게 사용하기 위해 인원수(1차원 배열)만 가져온다.
-                                                             * 추후 변경하는 것도 고려해볼수있음 */
                                                                 
             MyNetManager.instance.Chatroom.Add(roomInfo); // 채팅방 목록에 방 추가
         }
 
+
         /* 현재 개설된 방을 클라이언트 화면에 출력 */
 
-        /*
-        Debug.Log(MyNetManager.instance.Chatroom.Count + "개의 채팅방이 존재함. ");
-        Debug.Log(MyNetManager.instance.Chatroom[0].roomNum + "번 채팅방의 이름은 " + MyNetManager.instance.Chatroom[0].roomName + "이며, " + MyNetManager.instance.Chatroom[0].memberCount + "명이 접속중임. ");
-        */
+        // 만들어진 방이 한개라도 있다면 모든 방 삭제 
+        /* (childCount가 자식오브젝트를 하나 지울때마다 한개씩 줄어들것같지만 그렇지 않다. 처음 값을 참조할때 자식오브젝트가 2개였다면 for문을 수행하는 동안에도 2개임. 값을 복사해서 그렇다고함.) */
 
-        
-
-        // 만들어진 방이 한개라도 있다면 모든 방 삭제
-        while (MyNetManager.instance.m_roomListContent.transform.childCount > 0)
+        for (int i = 0; i < MyNetManager.instance.m_roomListContent.transform.childCount; i++)
         {
-            Destroy(MyNetManager.instance.m_roomListContent.transform.GetChild(0));
+            Destroy(MyNetManager.instance.m_roomListContent.transform.GetChild(i).gameObject);
         }
 
-        // 최신화된 채팅방 정보로 채팅방 생성
+        // 채팅방 버튼 생성
         for (int i = 0; i < MyNetManager.instance.Chatroom.Count; i++)
         {
+            // 버튼 프리팹 생성
             Button newChatRoom = Instantiate(MyNetManager.instance.m_chatRoomBtnPrfb);
+
+            Text newRoomName = newChatRoom.transform.GetChild(0).GetComponent<Text>();
+            Text newRoomNum = newChatRoom.transform.GetChild(1).GetComponent<Text>();
+            Text newMemberCount = newChatRoom.transform.GetChild(2).GetComponent<Text>();
+
+            // 채팅방 이름, 번호, 인원수
+            newRoomName.text = MyNetManager.instance.Chatroom[i].roomName;
+            newRoomNum.text = "" + MyNetManager.instance.Chatroom[i].roomNum;
+            newMemberCount.text = MyNetManager.instance.Chatroom[i].memberCount + " 명이 접속중";
+
+            // 버튼 콜백함수 지정
+            newChatRoom.onClick.AddListener(() => MyNetManager.instance.GotoRoom(int.Parse(newRoomNum.text)));
+
             newChatRoom.transform.SetParent(MyNetManager.instance.m_roomListContent.transform);
         }
-        
     }
 
 
