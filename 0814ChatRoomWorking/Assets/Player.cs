@@ -9,6 +9,8 @@ public class Player : NetworkBehaviour {
 
     public InputField m_newRoomName; // 생성하려는 방 이름
     public GameObject m_roomListContent; // 플레이어의 채팅방 리스트
+    public GameObject m_RoomScrollList;
+    private bool isRSLActive = true;
 
     public GameObject m_canvas;
     public GameObject m_player;  // cowboy object
@@ -96,6 +98,12 @@ public class Player : NetworkBehaviour {
     public void RefreshRoom()
     {
         MyNetManager.instance.RefreshRoom();
+    }
+
+    public void MinimizeRSL()
+    {
+        isRSLActive = !isRSLActive;
+        m_RoomScrollList.SetActive(isRSLActive);
     }
 
 }
