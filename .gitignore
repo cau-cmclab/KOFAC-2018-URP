@@ -34,3 +34,5 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+Assets/Scene/ChattingScene.unity
+QCAR/somedata16

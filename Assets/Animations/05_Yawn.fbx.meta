@@ -171,7 +171,7 @@ ModelImporter:
     - serializedVersion: 16
       name: 05_Yawn
       takeName: mixamo.com
-      firstFrame: 0
+      firstFrame: 88
       lastFrame: 250
       wrapMode: 0
       orientationOffsetY: 0
@@ -198,6 +198,13 @@ ModelImporter:
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
+        messageOptions: 0
+      - time: 0
+        functionName: EmotionSound
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 5
         messageOptions: 0
       transformMask: []
       maskType: 3
