@@ -19,6 +19,8 @@ public class PlayerController : MonoBehaviour
     Vector2 v2Forward = Vector2.zero;
     float fCurrentMoveSpeed = 0.0f;
     bool bDoingEmotion = false;
+
+    public Player m_player;
     
 	void Start ()
     {
@@ -29,6 +31,9 @@ public class PlayerController : MonoBehaviour
 	
 	void Update ()
     {
+        if(!(m_player.isLocalPlayer))
+            return;
+
         bDoingEmotion = animator.GetBool("Doing Emotion");
 
         v2Input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).normalized * fMoveSpeed * Time.deltaTime;
