@@ -23,7 +23,8 @@ public class PlayerController : MonoBehaviour
 	void Start ()
     {
         animator = GetComponent<Animator>();
-        charController = GetComponent<CharacterController>();
+        charController = GetComponent<CharacterController>();      
+        tfCamera = GameObject.Find("ARCamera").transform;  
 	}
 	
 	void Update ()

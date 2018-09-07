@@ -54,8 +54,7 @@ public class MyNetManager : NetworkManager
     public void SetupServer()
     {
         Debug.Log("SetupServer()");
-       // StartServer();
-       StartHost();
+        StartServer();
     }
 
     public override void OnStartServer()
