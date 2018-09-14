@@ -104,14 +104,14 @@ public class SpeechBubbleControl : MonoBehaviour {
                 Emotion_Button[6].SetActive(false);
                 Emotion_Button[7].SetActive(false);
 
-                Emotion_Button[8].SetActive(true);
-                Emotion_Button[9].SetActive(true);
+                Emotion_Button[8].SetActive(false);
+                Emotion_Button[9].SetActive(false);
                 Emotion_Button[10].SetActive(true);
-                Emotion_Button[11].SetActive(true);
+                Emotion_Button[11].SetActive(false);
 
-                Emotion_Button[12].SetActive(false);
-                Emotion_Button[13].SetActive(false);
-                Emotion_Button[14].SetActive(false);
+                Emotion_Button[12].SetActive(true);
+                Emotion_Button[13].SetActive(true);
+                Emotion_Button[14].SetActive(true);
                 Emotion_Button[15].SetActive(false);
                 break;
 
@@ -129,14 +129,14 @@ public class SpeechBubbleControl : MonoBehaviour {
                 Emotion_Button[6].SetActive(false);
                 Emotion_Button[7].SetActive(false);
 
-                Emotion_Button[8].SetActive(false);
-                Emotion_Button[9].SetActive(false);
+                Emotion_Button[8].SetActive(true);
+                Emotion_Button[9].SetActive(true);
                 Emotion_Button[10].SetActive(false);
-                Emotion_Button[11].SetActive(false);
+                Emotion_Button[11].SetActive(true);
 
-                Emotion_Button[12].SetActive(true);
-                Emotion_Button[13].SetActive(true);
-                Emotion_Button[14].SetActive(true);
+                Emotion_Button[12].SetActive(false);
+                Emotion_Button[13].SetActive(false);
+                Emotion_Button[14].SetActive(false);
                 Emotion_Button[15].SetActive(true);
                 break;
         }
