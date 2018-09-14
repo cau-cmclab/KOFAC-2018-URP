@@ -27,6 +27,9 @@ public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandle
         mTrackableBehaviour = GetComponent<TrackableBehaviour>();
         if (mTrackableBehaviour)
             mTrackableBehaviour.RegisterTrackableEventHandler(this);
+
+        // 시작되면 일단 화면을 비워준다.
+        OnTrackingLost();
     }
 
     protected virtual void OnDestroy()

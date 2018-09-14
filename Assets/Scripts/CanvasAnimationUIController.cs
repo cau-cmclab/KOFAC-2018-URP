@@ -12,10 +12,11 @@ public class CanvasAnimationUIController : MonoBehaviour
 
     void Start ()
     {
+        /*
         if (!playerController)
         {
             playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
-        }
+        }*/
 
         // Basic Emotions
         btnEmotion[0].onClick.AddListener(delegate { playerController.DoEmotions(1); });
@@ -37,9 +38,4 @@ public class CanvasAnimationUIController : MonoBehaviour
         btnEmotion[14].onClick.AddListener(delegate { playerController.DoEmotions(15); });
         btnEmotion[15].onClick.AddListener(delegate { playerController.DoEmotions(16); });
     }
-	
-	void Update ()
-    {
-
-	}
 }

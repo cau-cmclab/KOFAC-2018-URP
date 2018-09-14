@@ -6,12 +6,12 @@ using UnityEngine.UI;
 public class SpeechBubbleControl : MonoBehaviour {
 
     //추가적으로 주석이 달리지 않은 변수는 오브젝트이름과 동일하게 구성, 변수와 오브젝트가 연결되어있다고 생각하면 된다.
-    private Text speechBubbleText;
-    private GameObject speechBubbleUI;
+    public Text speechBubbleText;
+    public GameObject speechBubbleUI;
     private GameObject arCamera;
     private Texture2D galleryTexture2D;//안드로이드 플로그인을 통해 사진어플에서 받아온 Texture2D이미지
     private Sprite gallerySprite;//SpeechBubbleImage의 source image를 할당하기위해 Teture2D에서 Sprite으로 변환 후 Sprite형식의 저장변수 
-    private GameObject speechBubbleImage;
+    public GameObject speechBubbleImage;
     private bool isGalleryImageLoaded = false;//사진어플에서 사진을 잘 받아왔는지 확인하는 변수
     private WWW www;//사진어플에서 받아올때의 초기 변수
 
@@ -23,12 +23,15 @@ public class SpeechBubbleControl : MonoBehaviour {
 
     private int emotional_state = 1;
 
+    private float timer;
+    private float waitingTime;
+
     // Use this for initialization
     void Start () {
-        speechBubbleText = GameObject.Find("SpeechBubbleText").GetComponent<Text>();
-        speechBubbleUI = GameObject.Find("SpeechBubbleUI");
         arCamera = GameObject.Find("ARCamera");
-        speechBubbleImage = GameObject.Find("SpeechBubbleImage");
+
+        timer = 0;
+        waitingTime = 5f;
     }
 
     // Update is called once per frame
@@ -101,14 +104,14 @@ public class SpeechBubbleControl : MonoBehaviour {
                 Emotion_Button[6].SetActive(false);
                 Emotion_Button[7].SetActive(false);
 
-                Emotion_Button[8].SetActive(false);
-                Emotion_Button[9].SetActive(false);
+                Emotion_Button[8].SetActive(true);
+                Emotion_Button[9].SetActive(true);
                 Emotion_Button[10].SetActive(true);
-                Emotion_Button[11].SetActive(false);
+                Emotion_Button[11].SetActive(true);
 
-                Emotion_Button[12].SetActive(true);
-                Emotion_Button[13].SetActive(true);
-                Emotion_Button[14].SetActive(true);
+                Emotion_Button[12].SetActive(false);
+                Emotion_Button[13].SetActive(false);
+                Emotion_Button[14].SetActive(false);
                 Emotion_Button[15].SetActive(false);
                 break;
 
@@ -126,22 +129,33 @@ public class SpeechBubbleControl : MonoBehaviour {
                 Emotion_Button[6].SetActive(false);
                 Emotion_Button[7].SetActive(false);
 
-                Emotion_Button[8].SetActive(true);
-                Emotion_Button[9].SetActive(true);
+                Emotion_Button[8].SetActive(false);
+                Emotion_Button[9].SetActive(false);
                 Emotion_Button[10].SetActive(false);
-                Emotion_Button[11].SetActive(true);
+                Emotion_Button[11].SetActive(false);
 
-                Emotion_Button[12].SetActive(false);
-                Emotion_Button[13].SetActive(false);
-                Emotion_Button[14].SetActive(false);
+                Emotion_Button[12].SetActive(true);
+                Emotion_Button[13].SetActive(true);
+                Emotion_Button[14].SetActive(true);
                 Emotion_Button[15].SetActive(true);
                 break;
         }
+
+        timer += Time.deltaTime;
+        if(timer > waitingTime)
+        {
+            speechBubbleText.text = "";
+            timer = 0.0f;
+        }
+
     }
 
     public void InputTextChatwindow(InputField ip)
     {
         speechBubbleText.text = ip.text;
+        // 몇 초뒤에 말풍선 초기화
+        //StartCoroutine(MyWaitForSeconds(5f));
+        timer = 0.0f;
     }
 
     public void OnPhotoPick(string filePath)
@@ -181,4 +195,11 @@ public class SpeechBubbleControl : MonoBehaviour {
     {
         emotional_state++;
     }
+    /*
+    IEnumerator MyWaitForSeconds(float scnds)
+    {
+        yield return new WaitForSeconds(scnds);
+        speechBubbleText.text = "";
+    }*/
+
 }

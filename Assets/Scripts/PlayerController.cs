@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class PlayerController : MonoBehaviour
 {
@@ -19,15 +20,27 @@ public class PlayerController : MonoBehaviour
     Vector2 v2Forward = Vector2.zero;
     float fCurrentMoveSpeed = 0.0f;
     bool bDoingEmotion = false;
-    
+
+    public NetworkPlayer m_netPlayer;
+
 	void Start ()
     {
         animator = GetComponent<Animator>();
         charController = GetComponent<CharacterController>();
+
+        // 로컬 플레이어라면 ARCamera 설정
+        if (m_netPlayer.isLocalPlayer)
+        {
+            tfCamera = GameObject.Find("ARCamera").transform;
+        }
 	}
 	
 	void Update ()
     {
+        // 리모트 플레이어라면 키입력 받지 않음.
+        if (!(m_netPlayer.isLocalPlayer))
+            return;
+
         bDoingEmotion = animator.GetBool("Doing Emotion");
 
         v2Input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).normalized * fMoveSpeed * Time.deltaTime;
