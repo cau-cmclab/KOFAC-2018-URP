@@ -29,12 +29,31 @@ public class NetworkPlayer : NetworkBehaviour {
     public GameObject m_GalleryButton;
     public GameObject m_panelForButtons;
 
+
+    
+    public Text speechBubbleText;
+    public GameObject speechBubbleUI;
+    public GameObject speechBubbleImage;
+    
+    [Sy]
+
+    [SyncVar]
+    public int m_ID; // 개인클라이언트 ID
+
     [SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다
 	public int m_currentRoom;  // 로컬, 리모트 플레이어가 접속한 방
 
+    private GameObject arCamera;
+    private float timer;
+    private float waitingTime;
     void Start(){
         // 플레이어가 생성되면 ImageTarget 하위 오브젝트로 설정
         this.transform.SetParent(GameObject.FindGameObjectWithTag("ImageTarget").transform);
+
+        arCamera = GameObject.Find("ARCamera");
+
+        timer = 0;
+        waitingTime = 5f;
 
         // 리모트 플레이어라면 MainCanvas 비활성화
         if (!isLocalPlayer)
@@ -49,6 +68,7 @@ public class NetworkPlayer : NetworkBehaviour {
 	}
 
 	void Update () {
+        speechBubbleUI.transform.LookAt(arCamera.transform);
         // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
 		if (!isLocalPlayer) {
             /*
@@ -76,6 +96,15 @@ public class NetworkPlayer : NetworkBehaviour {
 
         // player의 m_currentRoom과 MyNetManager의 m_currentRoom은 매순간 동기화된다
 		CmdSetMyRoom (MyNetManager.instance.m_currentRoom);
+        // player의 자신의 클라이언트ID도 매순간 동기화한다.
+        CmdGetId();
+
+        timer += Time.deltaTime;
+        if(timer > waitingTime)
+        {
+            speechBubbleText.text = "";
+            timer = 0.0f;
+        }
 	}
 
     /* 자신의 방과 다른 방에 접속한 플레이어들을 보이지 않는다.
@@ -117,10 +146,26 @@ public class NetworkPlayer : NetworkBehaviour {
         }
     }
 
+    public void InputTextChatwindow(InputField ip)
+        {
+            speechBubbleText.text = ip.text;
+            // 몇 초뒤에 말풍선 초기화
+            //StartCoroutine(MyWaitForSeconds(5f));
+            timer = 0.0f;
+        }
+
+
 	[Command]
 	public void CmdGetId(){
 		MyNetManager.instance.SendID (this.connectionToClient.connectionId);
+        this.m_ID = MyNetManager.instance.GetMyID();
+        RpcGetid();
 	}
+
+    [ClientRpc]
+    public void RpcGetid(){
+        this.m_ID = MyNetManager.instance.GetMyID();
+    }
 
     // 서버로 채팅 메시지 전송
 	public void SendMes(){
@@ -129,7 +174,7 @@ public class NetworkPlayer : NetworkBehaviour {
 
         MyNetManager.instance.SendToServer(m_chatField.text);
         // 자신의 말풍선에 출력
-        m_player.GetComponentInChildren<SpeechBubbleControl>().InputTextChatwindow(m_chatField);
+        InputTextChatwindow(m_chatField);
         m_chatField.text = "";
 	}
 

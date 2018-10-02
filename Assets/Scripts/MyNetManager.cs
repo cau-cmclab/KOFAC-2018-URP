@@ -128,6 +128,12 @@ public class MyNetManager : NetworkManager
         m_client.Send(Message.MyMsgType.SendChatToServer, msg);
     }
 
+    //플레이어 오브젝트에게 ID전달
+     public int GetMyID()
+    {
+        return this.m_clientId;
+    }
+
     // Create버튼 클릭시 호출
     /// <summary>
     /// 입력한 방이름으로 방 만들기, 방 번호는 개설된 순으로 부여

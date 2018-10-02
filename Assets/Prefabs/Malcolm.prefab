@@ -5389,6 +5389,7 @@ MonoBehaviour:
   m_sendMsgButton: {fileID: 1287257564607108}
   m_GalleryButton: {fileID: 1531404741235362}
   m_panelForButtons: {fileID: 1538558819363458}
+  MyID: 0
   m_currentRoom: 0
 --- !u!114 &114644083731361746
 MonoBehaviour:
@@ -7119,7 +7120,7 @@ RectTransform:
   m_GameObject: {fileID: 1734805945532770}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7, y: 0.7, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 224825966080240762}
   - {fileID: 224848807629787590}
