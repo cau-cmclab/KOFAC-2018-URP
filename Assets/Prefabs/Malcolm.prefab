@@ -4398,9 +4398,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb8857537eed079479f66535facc5dd7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speechBubbleText: {fileID: 114117666921615966}
-  speechBubbleUI: {fileID: 1930403381356842}
-  speechBubbleImage: {fileID: 1700885386367774}
   Emotion_Button:
   - {fileID: 1014937536248246}
   - {fileID: 1701462529878696}
@@ -5389,7 +5386,11 @@ MonoBehaviour:
   m_sendMsgButton: {fileID: 1287257564607108}
   m_GalleryButton: {fileID: 1531404741235362}
   m_panelForButtons: {fileID: 1538558819363458}
-  MyID: 0
+  speechBubbleText: {fileID: 114117666921615966}
+  speechBubbleUI: {fileID: 1930403381356842}
+  speechBubbleImage: {fileID: 1700885386367774}
+  m_text: 
+  m_ID: 0
   m_currentRoom: 0
 --- !u!114 &114644083731361746
 MonoBehaviour:

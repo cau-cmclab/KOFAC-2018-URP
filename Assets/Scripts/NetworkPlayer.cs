@@ -34,8 +34,9 @@ public class NetworkPlayer : NetworkBehaviour {
     public Text speechBubbleText;
     public GameObject speechBubbleUI;
     public GameObject speechBubbleImage;
-    
-    [Sy]
+
+    [SyncVar]
+    public string m_text;
 
     [SyncVar]
     public int m_ID; // 개인클라이언트 ID
@@ -49,8 +50,8 @@ public class NetworkPlayer : NetworkBehaviour {
     void Start(){
         // 플레이어가 생성되면 ImageTarget 하위 오브젝트로 설정
         this.transform.SetParent(GameObject.FindGameObjectWithTag("ImageTarget").transform);
-
         arCamera = GameObject.Find("ARCamera");
+        speechBubbleUI.SetActive(false);
 
         timer = 0;
         waitingTime = 5f;
@@ -68,6 +69,11 @@ public class NetworkPlayer : NetworkBehaviour {
 	}
 
 	void Update () {
+        if(m_text == "")
+            speechBubbleUI.SetActive(false);
+        else
+            speechBubbleUI.SetActive(true);    
+        
         speechBubbleUI.transform.LookAt(arCamera.transform);
         // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
 		if (!isLocalPlayer) {
@@ -102,7 +108,8 @@ public class NetworkPlayer : NetworkBehaviour {
         timer += Time.deltaTime;
         if(timer > waitingTime)
         {
-            speechBubbleText.text = "";
+            CmdShareBubble("");
+            //speechBubbleText.text = "";
             timer = 0.0f;
         }
 	}
@@ -148,7 +155,8 @@ public class NetworkPlayer : NetworkBehaviour {
 
     public void InputTextChatwindow(InputField ip)
         {
-            speechBubbleText.text = ip.text;
+            //speechBubbleText.text = ip.text;
+            CmdShareBubble(ip.text);
             // 몇 초뒤에 말풍선 초기화
             //StartCoroutine(MyWaitForSeconds(5f));
             timer = 0.0f;
@@ -175,8 +183,15 @@ public class NetworkPlayer : NetworkBehaviour {
         MyNetManager.instance.SendToServer(m_chatField.text);
         // 자신의 말풍선에 출력
         InputTextChatwindow(m_chatField);
+        CmdShareBubble(m_chatField.text);
         m_chatField.text = "";
 	}
+
+    [Command]
+    public void CmdShareBubble(string str){
+        m_text = str;
+        speechBubbleText.text = m_text;
+    }
 
     [Command]
     public void CmdSetMyRoom(int roomnum)
