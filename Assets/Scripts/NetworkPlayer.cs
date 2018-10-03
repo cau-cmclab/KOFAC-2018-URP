@@ -51,7 +51,6 @@ public class NetworkPlayer : NetworkBehaviour {
         // 플레이어가 생성되면 ImageTarget 하위 오브젝트로 설정
         this.transform.SetParent(GameObject.FindGameObjectWithTag("ImageTarget").transform);
         arCamera = GameObject.Find("ARCamera");
-        speechBubbleUI.SetActive(false);
 
         timer = 0;
         waitingTime = 5f;
@@ -69,12 +68,24 @@ public class NetworkPlayer : NetworkBehaviour {
 	}
 
 	void Update () {
+        speechBubbleText.text = m_text;
+
         if(m_text == "")
             speechBubbleUI.SetActive(false);
-        else
-            speechBubbleUI.SetActive(true);    
+        else{
+            speechBubbleUI.SetActive(true);
+            timer += Time.deltaTime;   
+        }
         
         speechBubbleUI.transform.LookAt(arCamera.transform);
+
+        if(timer > waitingTime)
+        {
+            CmdShareBubble("");
+            //speechBubbleText.text = "";
+            timer = 0.0f;
+        }
+
         // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
 		if (!isLocalPlayer) {
             /*
@@ -104,14 +115,6 @@ public class NetworkPlayer : NetworkBehaviour {
 		CmdSetMyRoom (MyNetManager.instance.m_currentRoom);
         // player의 자신의 클라이언트ID도 매순간 동기화한다.
         CmdGetId();
-
-        timer += Time.deltaTime;
-        if(timer > waitingTime)
-        {
-            CmdShareBubble("");
-            //speechBubbleText.text = "";
-            timer = 0.0f;
-        }
 	}
 
     /* 자신의 방과 다른 방에 접속한 플레이어들을 보이지 않는다.
@@ -190,7 +193,6 @@ public class NetworkPlayer : NetworkBehaviour {
     [Command]
     public void CmdShareBubble(string str){
         m_text = str;
-        speechBubbleText.text = m_text;
     }
 
     [Command]
