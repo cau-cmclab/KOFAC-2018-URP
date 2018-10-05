@@ -87,9 +87,11 @@ public class MyNetManager : NetworkManager
         NetworkServer.SendToClient(connectionID, Message.MyMsgType.AssignClientId, msg);
     }
 
-    // 기존 플레이어 오브젝트를 변경한다. (spawnPrefabs[]은 MyNetworkManger에 SpawnInfo에 등록된 프리팹)
+    // 기존 플레이어 오브젝트를 변경한다.
+    /* 플레이어 오브젝트가 변경되면 플레이어 오브젝트가 가지고 있는 변수값들은 당연히 초기화된다. 유지해야할 정보가 있다면 여기서 넘겨주어야함. (현재로써는 캐릭터마다 다른 값을 갖는 정보는 없고 그나마 있는 것이 접속중인 채팅방인데 채팅방도 MyNetManager에서 실시간 동기화 되서 물려줄 필요 없음.) */
     public void RespawnPlayer(NetworkPlayer oldPlayer)
     {
+        // spawnPrefabs[]은 MyNetworkManger의 SpawnInfo에 등록된 프리팹
         int randIndex = Random.Range(0, spawnPrefabs.Count);
         var conn = oldPlayer.connectionToClient;
         var newPlayer = Instantiate(spawnPrefabs[randIndex]) as GameObject;
@@ -97,7 +99,6 @@ public class MyNetManager : NetworkManager
 
         /* 클라이언트에 로컬플레이어가 사용하는 프리팹이 플레이어 오브젝트 하나라면 ReplacePlayerForConnection의 마지막 인수는 0임. */
         NetworkServer.ReplacePlayerForConnection(conn, newPlayer, 0);
-        NetworkServer.Spawn(newPlayer);
         Destroy(oldPlayer.gameObject);
     }
 
