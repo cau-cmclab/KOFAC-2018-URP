@@ -18,6 +18,8 @@ public class MyNetManager : NetworkManager
 
     public Button m_chatRoomBtnPrfb; // 채팅방 버튼 프리팹
     public GameObject m_roomListContent; // 플레이어의 채팅방 리스트
+
+    public GameObject m_newPlayer; // Test
     
 	public struct StructChatroom
 	{
@@ -68,10 +70,6 @@ public class MyNetManager : NetworkManager
 
         Debug.Log("OnStartServer( )");
 
-        /*if (NetworkServer.active)
-            transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "Server is Working!";
-        */
-
         m_startServer.gameObject.SetActive(false);
         m_startClient.gameObject.SetActive(false);
     }
@@ -87,6 +85,20 @@ public class MyNetManager : NetworkManager
         Message.Msg_AssignClientId msg = new Message.Msg_AssignClientId();
         msg.clientId = connectionID;
         NetworkServer.SendToClient(connectionID, Message.MyMsgType.AssignClientId, msg);
+    }
+
+    // 기존 플레이어 오브젝트를 변경한다. (spawnPrefabs[]은 MyNetworkManger에 SpawnInfo에 등록된 프리팹)
+    public void RespawnPlayer(NetworkPlayer oldPlayer)
+    {
+        int randIndex = Random.Range(0, spawnPrefabs.Count);
+        var conn = oldPlayer.connectionToClient;
+        var newPlayer = Instantiate(spawnPrefabs[randIndex]) as GameObject;
+
+
+        /* 클라이언트에 로컬플레이어가 사용하는 프리팹이 플레이어 오브젝트 하나라면 ReplacePlayerForConnection의 마지막 인수는 0임. */
+        NetworkServer.ReplacePlayerForConnection(conn, newPlayer, 0);
+        NetworkServer.Spawn(newPlayer);
+        Destroy(oldPlayer.gameObject);
     }
 
     #endregion

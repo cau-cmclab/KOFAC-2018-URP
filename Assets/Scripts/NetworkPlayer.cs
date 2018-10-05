@@ -5,14 +5,6 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 
 
-/* 해야하는 기능
- * 1. 채팅을 입력하면 자신의 말풍선에 출력되야함. 둘째로, 상대방의 화면의 자신의 플레이어에도 출력되어야 한다. 몇 초뒤에 동시에 사라지게 해야한다.
- 
-   2.  이모티콘은 몇초뒤 사라져야한다. 현재 되지않고 있음.
-
- */
-
-
 public class NetworkPlayer : NetworkBehaviour {
 
     public InputField m_newRoomName; // 생성하려는 방 이름
@@ -51,12 +43,6 @@ public class NetworkPlayer : NetworkBehaviour {
 	void Update () {
         // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
 		if (!isLocalPlayer) {
-            /*
-			if (m_currentRoom != MyNetManager.instance.m_currentRoom)
-				m_player.SetActive (false);
-			else
-				m_player.SetActive (true);
-		    */
             SetPlayerRender();
             return;
 		}
@@ -164,6 +150,22 @@ public class NetworkPlayer : NetworkBehaviour {
     {
         m_isRSLActive = !m_isRSLActive;
         m_roomScrollList.SetActive(m_isRSLActive);
+    }
+
+    /* 한가지 사실을 알았는데 Cmd함수를 버튼의 콜백함수로 사용하면 제대로 동작하지 않는다. ([Command]에 의해서 서버에서 실행되야하는데 그렇게 되지 않음.)
+       따라서 버튼으로 호출하려면 버튼 콜백함수를 따로 만들어 그 안에서 호출해주어야 함. */
+    // 캐릭터 변경 버튼
+    public void OnChangePlayerButton()
+    {
+        if (!isLocalPlayer)
+            return;
+        CmdChangePlayer();
+    }
+
+    [Command]
+    public void CmdChangePlayer()
+    {
+        MyNetManager.instance.RespawnPlayer(this);
     }
 
 }
