@@ -394,7 +394,7 @@ Prefab:
     - target: {fileID: 224934448965460814, guid: 397e12fc80365e545a1d7e4e1be4ca66,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: -563
+      value: -466.39307
       objectReference: {fileID: 0}
     - target: {fileID: 224429757262391270, guid: 397e12fc80365e545a1d7e4e1be4ca66,
         type: 2}
@@ -425,6 +425,16 @@ Prefab:
         type: 2}
       propertyPath: m_SizeDelta.y
       value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 114230030447024280, guid: 397e12fc80365e545a1d7e4e1be4ca66,
+        type: 2}
+      propertyPath: m_NetworkAddress
+      value: 192.168.0.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 114230030447024280, guid: 397e12fc80365e545a1d7e4e1be4ca66,
+        type: 2}
+      propertyPath: m_UseWebSockets
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 397e12fc80365e545a1d7e4e1be4ca66, type: 2}

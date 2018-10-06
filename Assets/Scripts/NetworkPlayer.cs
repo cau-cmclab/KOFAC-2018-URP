@@ -27,6 +27,7 @@ public class NetworkPlayer : NetworkBehaviour {
     public InputField m_chatField;  // 채팅 입력창
     public GameObject m_sendMsgButton;
     public GameObject m_GalleryButton;
+    public GameObject m_SpeechButton;
     public GameObject m_panelForButtons;
 
     [SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다
@@ -45,6 +46,7 @@ public class NetworkPlayer : NetworkBehaviour {
         {
             CmdGetId();
             MyNetManager.instance.m_roomListContent = this.m_roomListContent;
+            ChangeMyObjName();
         }
 	}
 
@@ -66,11 +68,13 @@ public class NetworkPlayer : NetworkBehaviour {
 			m_chatField.gameObject.SetActive (false);
 			m_sendMsgButton.SetActive (false);
             m_GalleryButton.SetActive(false);
+            m_SpeechButton.SetActive(false);
             m_panelForButtons.SetActive(false);
         } else {
             m_chatField.gameObject.SetActive(true);
             m_sendMsgButton.SetActive(true);
             m_GalleryButton.SetActive(true);
+            m_SpeechButton.SetActive(true);
             m_panelForButtons.SetActive(true);
         }
 
@@ -165,5 +169,9 @@ public class NetworkPlayer : NetworkBehaviour {
         m_isRSLActive = !m_isRSLActive;
         m_roomScrollList.SetActive(m_isRSLActive);
     }
-
+    
+    public void ChangeMyObjName()
+    {
+        this.gameObject.name = this.gameObject.name + "_LOCALPLAYER";
+    }
 }
