@@ -19,7 +19,11 @@ public class MyNetManager : NetworkManager
     public Button m_chatRoomBtnPrfb; // 채팅방 버튼 프리팹
     public GameObject m_roomListContent; // 플레이어의 채팅방 리스트
 
-    public GameObject m_newPlayer; // Test
+    public Texture2D m_SndImage; // Test 64 64, 128 128, 256 256
+    Texture2D m_recImage;
+    public GameObject m_showImage;
+    Sprite spr;
+    private List<byte> imageBuffer = new List<byte>();
     
 	public struct StructChatroom
 	{
@@ -67,6 +71,7 @@ public class MyNetManager : NetworkManager
         NetworkServer.RegisterHandler(Message.MyMsgType.InAndOutChatRoom, Message.OnMsgInAndOutChatRoom);
         NetworkServer.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
         NetworkServer.RegisterHandler(Message.MyMsgType.ChatRoomInfo, Message.OnMsgChatRoomInfoOnServer);
+        NetworkServer.RegisterHandler(Message.MyMsgType.SendImageToServer, Message.OnMsgReceiveImageOnServer);
 
         Debug.Log("OnStartServer( )");
 
@@ -122,7 +127,7 @@ public class MyNetManager : NetworkManager
         client.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
         client.RegisterHandler(Message.MyMsgType.InAndOutAlarm, Message.OnMsgReceiveInAndOutAlarm);
         client.RegisterHandler(Message.MyMsgType.ChatRoomInfo, Message.OnMsgChatRoomInfoOnClient);
-
+        client.RegisterHandler(Message.MyMsgType.SendImageToClient, Message.OnMsgReceiveImageOnClient);
 
         m_client = client;
 
@@ -204,6 +209,119 @@ public class MyNetManager : NetworkManager
         m_client.Send(Message.MyMsgType.ChatRoomInfo, msg);
     }
 
-    #endregion
+    // 테스트 이미지 보내기
+    public void TestSendImage(byte[] dataImage, string curState, int size)
+    {
+        Debug.Log("OnTestSendImage Call");
 
+        Message.Msg_Image msg = new Message.Msg_Image();
+        msg.roomNum = m_currentRoom;
+        msg.clientId = this.m_clientId;
+        msg.imageData = dataImage;
+        msg.state = curState;
+        msg.size = size;
+        m_client.Send(Message.MyMsgType.SendImageToServer, msg);
+
+        /*m_client.SendByChannel(Message.MyMsgType.SendImageToServer, msg, 2); 다른 채널 이용하는 방법. default채널은 Reliable Sequenced
+         * 전송 속도를 위해 UnReliable Sequenced 채널을 이용하는 것도 생각해본다. */
+    }
+
+    // 테스트 이미지 받기
+    public void TestReceiveImage(byte[] dataImage, string curState, int size)
+    {
+        Debug.Log("TestReceiveImage Call");
+
+        // 순차적으로 버퍼에 저장
+        for (int i = 0; i < size; i++)
+            imageBuffer.Add(dataImage[i]);
+
+        if (curState.Equals("FINISH"))
+        {
+            Debug.Log("FINISH");
+
+            byte[] finalData = new byte[imageBuffer.Count];
+
+            for (int i = 0; i < imageBuffer.Count; i++)
+                finalData[i] = imageBuffer[i];
+
+            imageBuffer.Clear();  // 다음 이미지를 위해 버퍼공간 초기화
+            Debug.Log("Receive Data Size : " + finalData.Length);
+            
+            m_recImage = new Texture2D(m_SndImage.width, m_SndImage.height, TextureFormat.ARGB32, false);
+            m_recImage.LoadImage(finalData);
+            m_recImage.Apply();
+
+            //m_recImage = new Texture2D(m_SndImage.width, m_SndImage.height, TextureFormat.RGBA32, false);
+            //m_recImage.LoadRawTextureData(finalData);
+            //m_recImage.Apply();
+
+            spr = Sprite.Create(m_recImage, new Rect(0.0f, 0.0f, m_SndImage.width, m_SndImage.height), new Vector2(0.0f, 0.0f));
+            m_showImage.GetComponent<Image>().sprite = spr;
+        }
+    }
+
+    // 테스트 패킷 분할 전송
+    public void OnSendData()
+    {
+        /* RawData Format
+        Texture2D newTexture = new Texture2D(m_SndImage.width, m_SndImage.height, TextureFormat.RGBA32, false);
+        newTexture.SetPixels32(m_SndImage.GetPixels32());
+        newTexture.Apply();
+        */
+
+        // PNG Format Setting (PNG는 ARGB32텍스쳐에선 알파채널을 포함. RGB24에서는 미포함)
+        Texture2D newTexture = new Texture2D(m_SndImage.width, m_SndImage.height, TextureFormat.ARGB32, false);
+        // Apply Image
+        newTexture.SetPixels(m_SndImage.GetPixels());
+        newTexture.Apply();
+
+
+
+        byte[] copyData = newTexture.EncodeToPNG();  // PNG로 인코딩
+        //byte[] tempData = newTexture.GetRawTextureData();
+        byte[] sndBuffer = new byte[1300];  // 패킷 크기를 1300으로 설정
+        int pos = 0;
+        int i = 0;
+        int size = 0;
+        int packet = 0;
+
+        Debug.Log("Send Data Size : " + copyData.Length);
+
+        // 반복 전송
+        while (pos < copyData.Length)
+        {
+            sndBuffer[i] = copyData[pos];
+            i++; pos++; size++;
+
+            // 1300개를 받은 것이 마지막 패킷일경우
+            if((i > sndBuffer.Length - 1) && (pos >= copyData.Length))
+            {
+                Debug.Log("마지막 패킷" + ++packet + "을 보냅니다.");
+                TestSendImage(sndBuffer, "FINISH", size);  // 1300개 데이터 보낸다.
+                break;
+            }
+            // 마지막 패킷은 아니지만 1300개까지 받았다면 
+            else if (i > sndBuffer.Length - 1)
+            {
+                Debug.Log("패킷" + ++packet +  "을 보냅니다.");
+                TestSendImage(sndBuffer, "SENDING", size);  // 1300개 데이터 보낸다.
+                i = 0; size = 0;
+            }
+            // 1300개를 다 채우진 못햇지만 마지막 패킷이라면
+            else if (pos >= copyData.Length)
+            {
+                Debug.Log("마지막 패킷" + ++packet + "을 보냅니다.");
+                TestSendImage(sndBuffer, "FINISH", size); // 나머지 데이터를 보낸다.
+                break;
+            }
+        }
+    }
+
+    #endregion
 }
+
+/* 한번에 얼만큼의 데이터를 보낼 수 있지? Maximum Transmission Unit : 1400 Byte
+ * 그럼 1024 Byte씩 나누어서 보낸다. (추천 크기는 1300Byte )
+   
+     1024패킷을 다 채웠는가? -> 보낸다.
+     1024패킷을 다 채우진 못했으나 마지막 데이터인가? -> 보낸다.*/

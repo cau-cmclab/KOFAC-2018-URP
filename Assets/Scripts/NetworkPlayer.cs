@@ -37,6 +37,7 @@ public class NetworkPlayer : NetworkBehaviour {
         {
             CmdGetId();
             MyNetManager.instance.m_roomListContent = this.m_roomListContent;
+            ChangeMyObjName();
         }
 	}
 
@@ -168,4 +169,8 @@ public class NetworkPlayer : NetworkBehaviour {
         MyNetManager.instance.RespawnPlayer(this);
     }
 
+    public void ChangeMyObjName()
+    {
+        this.gameObject.name = this.gameObject.name + "_LOCALPLAYER";
+    }
 }
