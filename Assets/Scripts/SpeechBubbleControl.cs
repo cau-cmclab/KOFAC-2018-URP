@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class SpeechBubbleControl : MonoBehaviour {
 
-    //추가적으로 주석이 달리지 않은 변수는 오브젝트이름과 동일하게 구성, 변수와 오브젝트가 연결되어있다고 생각하면 된다.
     public Text speechBubbleText;
     public GameObject speechBubbleUI;
     private GameObject arCamera;
@@ -153,8 +152,6 @@ public class SpeechBubbleControl : MonoBehaviour {
     public void InputTextChatwindow(InputField ip)
     {
         speechBubbleText.text = ip.text;
-        // 몇 초뒤에 말풍선 초기화
-        //StartCoroutine(MyWaitForSeconds(5f));
         timer = 0.0f;
     }
 
@@ -201,11 +198,5 @@ public class SpeechBubbleControl : MonoBehaviour {
     {
         emotional_state++;
     }
-    /*
-    IEnumerator MyWaitForSeconds(float scnds)
-    {
-        yield return new WaitForSeconds(scnds);
-        speechBubbleText.text = "";
-    }*/
 
 }
