@@ -159,6 +159,7 @@ public class SpeechBubbleControl : MonoBehaviour {
     {
         Debug.Log(filePath);
         www = new WWW("file://" + filePath);
+
         if (www != null && www.isDone)
         {
             galleryTexture2D = new Texture2D(www.texture.width, www.texture.height);
@@ -172,6 +173,11 @@ public class SpeechBubbleControl : MonoBehaviour {
             speechBubbleText.text = "됨";
             gallerySprite = Sprite.Create(galleryTexture2D, new Rect(0.0f, 0.0f, galleryTexture2D.width, galleryTexture2D.height), new Vector2(0.5f, 0.5f));
             speechBubbleImage.GetComponent<Image>().sprite = gallerySprite;
+        }
+
+        else
+        {
+            speechBubbleText.text = "안됨";
         }
     }
 
