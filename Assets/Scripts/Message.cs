@@ -310,7 +310,8 @@ public class Message : MonoBehaviour{
             newMemberCount.text = MyNetManager.instance.Chatroom[i].memberCount + " 명이 접속중";
 
             // 버튼 콜백함수 지정
-            newChatRoom.onClick.AddListener(() => MyNetManager.instance.GotoRoom(int.Parse(newRoomNum.text)));
+            //newChatRoom.onClick.AddListener(() => MyNetManager.instance.GotoRoom(int.Parse(newRoomNum.text)));
+            newChatRoom.onClick.AddListener(() => MyNetManager.instance.m_LocalPlayer.GotoRoom(int.Parse(newRoomNum.text)));
 
             newChatRoom.transform.SetParent(MyNetManager.instance.m_roomListContent.transform);
         }

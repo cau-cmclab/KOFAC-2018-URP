@@ -21,7 +21,7 @@ public class NetworkPlayer : NetworkBehaviour {
     public GameObject m_GalleryButton;
     public GameObject m_panelForButtons;
 
-    [SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다
+    [SyncVar]
 	public int m_currentRoom;  // 로컬, 리모트 플레이어가 접속한 방
 
     void Start(){
@@ -35,39 +35,43 @@ public class NetworkPlayer : NetworkBehaviour {
         }
         else
         {
+            // MyNetManager에 로컬플레이어 오브젝트 저장.
+            MyNetManager.instance.m_LocalPlayer = this;
+
             CmdGetId();
             MyNetManager.instance.m_roomListContent = this.m_roomListContent;
             ChangeMyObjName();
+            CmdSetMyRoom(MyNetManager.instance.m_currentRoom);
         }
 	}
 
 	void Update () {
-        // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
-		if (!isLocalPlayer) {
-            SetPlayerRender();
+
+        if (!isLocalPlayer) {
+            // 마커가 인식되는중에만 플레이어들의 렌더링 여부를 판단한다.
+            if(MyNetManager.instance.isMarkerFound == true)
+            {
+                SetPlayerRender();
+            }
             return;
 		}
-
+        
         // 방에 입장하지 않은 상태라면 메시지 보내는 버튼 비활성화
 		if (m_currentRoom == -1) {
 			m_chatField.gameObject.SetActive (false);
 			m_sendMsgButton.SetActive (false);
             m_GalleryButton.SetActive(false);
             m_panelForButtons.SetActive(false);
-        } else {
+        }
+        else {
             m_chatField.gameObject.SetActive(true);
             m_sendMsgButton.SetActive(true);
             m_GalleryButton.SetActive(true);
             m_panelForButtons.SetActive(true);
         }
-
-        // player의 m_currentRoom과 MyNetManager의 m_currentRoom은 매순간 동기화된다
-		CmdSetMyRoom (MyNetManager.instance.m_currentRoom);
 	}
 
-    /* 자신의 방과 다른 방에 접속한 플레이어들을 보이지 않는다.
-     * 현재 Update에서 돌아가기 때문에 성능 저하가 있을 것으로 예상됨. 
-     * 불가피하게 작성된 함수이므로 추후 변경하는 것이 좋음. */
+    // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
     private void SetPlayerRender()
     {
         var rendererComponents = GetComponentsInChildren<Renderer>(true);
@@ -89,7 +93,7 @@ public class NetworkPlayer : NetworkBehaviour {
                 component.enabled = false;
         }
         else
-        {     
+        {
             // Enable rendering:
             foreach (var component in rendererComponents)
                 component.enabled = true;
@@ -135,10 +139,18 @@ public class NetworkPlayer : NetworkBehaviour {
         m_newRoomName.text = "";
     }
     
+    public void GotoRoom(int RoomNum)
+    {
+        MyNetManager.instance.GotoRoom(RoomNum);
+
+        CmdSetMyRoom(MyNetManager.instance.m_currentRoom);
+    }
 	
 	public void ExitRoom(){
 		MyNetManager.instance.ExitRoom (m_currentRoom);
-	}
+
+        CmdSetMyRoom(MyNetManager.instance.m_currentRoom);
+    }
 
     // 방 목록 새로고침
     public void RefreshRoom()
@@ -153,7 +165,7 @@ public class NetworkPlayer : NetworkBehaviour {
         m_roomScrollList.SetActive(m_isRSLActive);
     }
 
-    /* 한가지 사실을 알았는데 Cmd함수를 버튼의 콜백함수로 사용하면 제대로 동작하지 않는다. ([Command]에 의해서 서버에서 실행되야하는데 그렇게 되지 않음.)
+    /* 한가지 사실을 알았는데 Cmd함수를 버튼의 콜백함수로 사용하면 Cmd기능이 제대로 동작하지 않는다. ([Command]에 의해서 서버에서 실행되야하는데 그렇게 되지 않음.)
        따라서 버튼으로 호출하려면 버튼 콜백함수를 따로 만들어 그 안에서 호출해주어야 함. */
     // 캐릭터 변경 버튼
     public void OnChangePlayerButton()
