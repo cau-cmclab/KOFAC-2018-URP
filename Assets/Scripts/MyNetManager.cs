@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class MyNetManager : NetworkManager
 {
-    public NetworkPlayer m_LocalPlayer; // 동적으로 생성되는 로컬플레이어 오브젝트를 저장한다.
     public NetworkClient m_client;
 	public int m_clientId;
 	public int m_currentRoom = -1; // 로컬 플레이어가 접속한 방. 로비는 -1임(방에 접속하지 않은 상태).
@@ -19,15 +18,6 @@ public class MyNetManager : NetworkManager
 
     public Button m_chatRoomBtnPrfb; // 채팅방 버튼 프리팹
     public GameObject m_roomListContent; // 플레이어의 채팅방 리스트
-
-    public bool isMarkerFound = true;  // Marker의 인식여부는 DefaultTrackableEventHandler 스크립트에서 실시
-
-    public Texture2D m_SndImage; // Test 64 64, 128 128, 256 256
-    Texture2D m_recImage;
-    public GameObject m_showImage;
-    Sprite spr;
-
-    private List<byte> imageBuffer = new List<byte>();
     
 	public struct StructChatroom
 	{
@@ -42,6 +32,7 @@ public class MyNetManager : NetworkManager
 	};
 
 	public List<StructChatroom> Chatroom = new List<StructChatroom> ();
+
 
     private static MyNetManager mInstance;
 
@@ -74,9 +65,12 @@ public class MyNetManager : NetworkManager
         NetworkServer.RegisterHandler(Message.MyMsgType.InAndOutChatRoom, Message.OnMsgInAndOutChatRoom);
         NetworkServer.RegisterHandler(Message.MyMsgType.CreateRoom, Message.OnMsgCreateRoom);
         NetworkServer.RegisterHandler(Message.MyMsgType.ChatRoomInfo, Message.OnMsgChatRoomInfoOnServer);
-        NetworkServer.RegisterHandler(Message.MyMsgType.SendImageToServer, Message.OnMsgReceiveImageOnServer);
 
         Debug.Log("OnStartServer( )");
+
+        /*if (NetworkServer.active)
+            transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "Server is Working!";
+        */
 
         m_startServer.gameObject.SetActive(false);
         m_startClient.gameObject.SetActive(false);
@@ -93,21 +87,6 @@ public class MyNetManager : NetworkManager
         Message.Msg_AssignClientId msg = new Message.Msg_AssignClientId();
         msg.clientId = connectionID;
         NetworkServer.SendToClient(connectionID, Message.MyMsgType.AssignClientId, msg);
-    }
-
-    // 기존 플레이어 오브젝트를 변경한다.
-    /* 플레이어 오브젝트가 변경되면 플레이어 오브젝트가 가지고 있는 변수값들은 당연히 초기화된다. 유지해야할 정보가 있다면 여기서 넘겨주어야함. 
-     * (현재로써는 캐릭터마다 다른 값을 갖는 정보는 없고 그나마 있는 것이 접속중인 채팅방인데 채팅방도 MyNetManager에서 실시간 동기화 되서 물려줄 필요 없음.) */
-    public void RespawnPlayer(NetworkPlayer oldPlayer)
-    {
-        // spawnPrefabs[]은 MyNetworkManger의 SpawnInfo에 등록된 프리팹
-        int randIndex = Random.Range(0, spawnPrefabs.Count);
-        var conn = oldPlayer.connectionToClient;
-        var newPlayer = Instantiate(spawnPrefabs[randIndex]) as GameObject;
-
-        /* 클라이언트에 로컬플레이어가 사용하는 프리팹이 플레이어 오브젝트 하나라면 ReplacePlayerForConnection의 마지막 인수는 0임. */
-        NetworkServer.ReplacePlayerForConnection(conn, newPlayer, 0);
-        Destroy(oldPlayer.gameObject);
     }
 
     #endregion
@@ -130,7 +109,7 @@ public class MyNetManager : NetworkManager
         client.RegisterHandler(Message.MyMsgType.SendChatToClient, Message.OnMsgReceiveChatOnClient);
         client.RegisterHandler(Message.MyMsgType.InAndOutAlarm, Message.OnMsgReceiveInAndOutAlarm);
         client.RegisterHandler(Message.MyMsgType.ChatRoomInfo, Message.OnMsgChatRoomInfoOnClient);
-        client.RegisterHandler(Message.MyMsgType.SendImageToClient, Message.OnMsgReceiveImageOnClient);
+
 
         m_client = client;
 
@@ -212,102 +191,6 @@ public class MyNetManager : NetworkManager
         m_client.Send(Message.MyMsgType.ChatRoomInfo, msg);
     }
 
-    // 테스트 이미지 보내기
-    public void TestSendImage(byte[] dataImage, string curState, int size)
-    {
-        Debug.Log("OnTestSendImage Call");
-
-        Message.Msg_Image msg = new Message.Msg_Image();
-        msg.roomNum = m_currentRoom;
-        msg.clientId = this.m_clientId;
-        msg.imageData = dataImage;
-        msg.state = curState;
-        msg.size = size;
-        m_client.Send(Message.MyMsgType.SendImageToServer, msg);
-
-        /*m_client.SendByChannel(Message.MyMsgType.SendImageToServer, msg, 2); 다른 채널 이용하는 방법. default채널은 Reliable Sequenced
-         * 전송 속도를 위해 UnReliable Sequenced 채널을 이용하는 것도 생각해본다. */
-    }
-
-    // 테스트 이미지 받기
-    public void TestReceiveImage(byte[] dataImage, string curState, int size)
-    {
-        Debug.Log("TestReceiveImage Call");
-
-        // 순차적으로 버퍼에 저장
-        for (int i = 0; i < size; i++)
-            imageBuffer.Add(dataImage[i]);
-
-        if (curState.Equals("FINISH"))
-        {
-            Debug.Log("FINISH");
-
-            byte[] finalData = new byte[imageBuffer.Count];
-
-            for (int i = 0; i < imageBuffer.Count; i++)
-                finalData[i] = imageBuffer[i];
-
-            imageBuffer.Clear();  // 다음 이미지를 위해 버퍼공간 초기화
-            Debug.Log("Receive Data Size : " + finalData.Length);
-            
-            m_recImage = new Texture2D(m_SndImage.width, m_SndImage.height, TextureFormat.ARGB32, false);
-            m_recImage.LoadImage(finalData);
-            m_recImage.Apply();
-
-            spr = Sprite.Create(m_recImage, new Rect(0.0f, 0.0f, m_SndImage.width, m_SndImage.height), new Vector2(0.0f, 0.0f));
-            m_showImage.GetComponent<Image>().sprite = spr;
-        }
-    }
-
-    // 테스트 패킷 분할 전송
-    public void OnSendData()
-    {
-        // PNG Format Setting (PNG는 ARGB32텍스쳐에선 알파채널을 포함. RGB24에서는 미포함)
-        Texture2D newTexture = new Texture2D(m_SndImage.width, m_SndImage.height, TextureFormat.ARGB32, false);
-        // Apply Image
-        newTexture.SetPixels(m_SndImage.GetPixels());
-        newTexture.Apply();
-
-
-
-        byte[] copyData = newTexture.EncodeToPNG();  // PNG로 인코딩
-        byte[] sndBuffer = new byte[1300];  // 패킷 크기를 1300으로 설정
-        int pos = 0;
-        int i = 0;
-        int size = 0;
-        int packet = 0;
-
-        Debug.Log("Send Data Size : " + copyData.Length);
-
-        // 반복 전송
-        while (pos < copyData.Length)
-        {
-            sndBuffer[i] = copyData[pos];
-            i++; pos++; size++;
-
-            // 1300개를 받은 것이 마지막 패킷일경우
-            if((i > sndBuffer.Length - 1) && (pos >= copyData.Length))
-            {
-                Debug.Log("마지막 패킷" + ++packet + "을 보냅니다.");
-                TestSendImage(sndBuffer, "FINISH", size);  // 1300개 데이터 보낸다.
-                break;
-            }
-            // 마지막 패킷은 아니지만 1300개까지 받았다면 
-            else if (i > sndBuffer.Length - 1)
-            {
-                Debug.Log("패킷" + ++packet +  "을 보냅니다.");
-                TestSendImage(sndBuffer, "SENDING", size);  // 1300개 데이터 보낸다.
-                i = 0; size = 0;
-            }
-            // 1300개를 다 채우진 못햇지만 마지막 패킷이라면
-            else if (pos >= copyData.Length)
-            {
-                Debug.Log("마지막 패킷" + ++packet + "을 보냅니다.");
-                TestSendImage(sndBuffer, "FINISH", size); // 나머지 데이터를 보낸다.
-                break;
-            }
-        }
-    }
-
     #endregion
+
 }

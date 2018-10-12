@@ -9,9 +9,6 @@ Confidential and Proprietary - Protected under copyright and other laws.
 using UnityEngine;
 using Vuforia;
 
-// ImageTarget의 자식오브젝트들의 렌더링 적용 여부를 확인한다.
-// 마커가 인식중이 아니라면 Renderer, Colider, Canvas 컴포넌트를 해제한다.
-
 /// <summary>
 ///     A custom handler that implements the ITrackableEventHandler interface.
 /// </summary>
@@ -96,8 +93,6 @@ public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandle
         // Enable canvas':
         foreach (var component in canvasComponents)
             component.enabled = true;
-
-        MyNetManager.instance.isMarkerFound = true;
     }
 
 
@@ -118,8 +113,6 @@ public class DefaultTrackableEventHandler : MonoBehaviour, ITrackableEventHandle
         // Disable canvas':
         foreach (var component in canvasComponents)
             component.enabled = false;
-
-        MyNetManager.instance.isMarkerFound = false;
     }
 
     #endregion // PROTECTED_METHODS

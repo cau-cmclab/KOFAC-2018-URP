@@ -18,7 +18,7 @@ public class Message : MonoBehaviour{
         public const short SendChatToServer = MsgType.Highest + 2;
         // Msg_Chat
         public const short SendChatToClient = MsgType.Highest + 3;
-
+        // 
         public const short InAndOutChatRoom = MsgType.Highest + 4;
 
         public const short CreateRoom = MsgType.Highest + 5;
@@ -26,10 +26,7 @@ public class Message : MonoBehaviour{
         public const short InAndOutAlarm = MsgType.Highest + 6;
 
         public const short ChatRoomInfo = MsgType.Highest + 7;
-        // Msg_Image
-        public const short SendImageToServer = MsgType.Highest + 8;
-        // Msg_Image
-        public const short SendImageToClient = MsgType.Highest + 9;
+
     }
     #endregion
 
@@ -84,15 +81,6 @@ public class Message : MonoBehaviour{
             roomNum = new int[MyNetManager.instance.Chatroom.Count];
             memberCount = new int[MyNetManager.instance.Chatroom.Count];
         }
-    }
-
-    public class Msg_Image : MessageBase
-    {
-        public int roomNum;
-        public int clientId;
-        public byte[] imageData;
-        public string state;
-        public int size;
     }
 
     #endregion
@@ -181,22 +169,6 @@ public class Message : MonoBehaviour{
         }
 
         NetworkServer.SendToClient(msg.clientId, MyMsgType.ChatRoomInfo, InfoMsg);
-    }
-
-    // 서버에서 클라이언트로부터 받은 이미지 재전송
-    public static void OnMsgReceiveImageOnServer(NetworkMessage netMsg)
-    {
-        Debug.Log("SERVER RECEIVED");
-        Msg_Image newMsg = netMsg.ReadMessage<Msg_Image>();
-        
-        // 메시지를 보낸 클라이언트와 같은 방에 접속한 클라이언트들에게 재전송
-        for (int i = 0; i < MyNetManager.instance.Chatroom[newMsg.roomNum].member.Count; i++)
-        {
-            /* 현재 자기 자신에게는 보내지 않게 설정 */
-            if (newMsg.clientId != MyNetManager.instance.Chatroom[newMsg.roomNum].member[i])
-                NetworkServer.SendToClient(MyNetManager.instance.Chatroom[newMsg.roomNum].member[i], MyMsgType.SendImageToClient, newMsg);
-        }
-        Debug.Log("SERVER TRANSMISSION OVER");
     }
 
     #endregion
@@ -310,20 +282,12 @@ public class Message : MonoBehaviour{
             newMemberCount.text = MyNetManager.instance.Chatroom[i].memberCount + " 명이 접속중";
 
             // 버튼 콜백함수 지정
-            //newChatRoom.onClick.AddListener(() => MyNetManager.instance.GotoRoom(int.Parse(newRoomNum.text)));
-            newChatRoom.onClick.AddListener(() => MyNetManager.instance.m_LocalPlayer.GotoRoom(int.Parse(newRoomNum.text)));
+            newChatRoom.onClick.AddListener(() => MyNetManager.instance.GotoRoom(int.Parse(newRoomNum.text)));
 
             newChatRoom.transform.SetParent(MyNetManager.instance.m_roomListContent.transform);
         }
     }
 
-    public static void OnMsgReceiveImageOnClient(NetworkMessage netMsg)
-    {
-        Msg_Image newMsg = netMsg.ReadMessage<Msg_Image>();
-
-        MyNetManager.instance.TestReceiveImage(newMsg.imageData, newMsg.state, newMsg.size);
-    }
 
     #endregion
 }
- 
