@@ -4417,6 +4417,10 @@ MonoBehaviour:
   - {fileID: 1412714351932092}
   UpButton: {fileID: 1602849301440016}
   DownButton: {fileID: 1560132666727938}
+  speechBubbleText: {fileID: 114117666921615966}
+  speechBubbleUI: {fileID: 1930403381356842}
+  speechBubbleImage: {fileID: 1700885386367774}
+  m_player: {fileID: 114631114627205620}
 --- !u!114 &114297170190020354
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5386,9 +5390,7 @@ MonoBehaviour:
   m_sendMsgButton: {fileID: 1287257564607108}
   m_GalleryButton: {fileID: 1531404741235362}
   m_panelForButtons: {fileID: 1538558819363458}
-  speechBubbleText: {fileID: 114117666921615966}
-  speechBubbleUI: {fileID: 1930403381356842}
-  speechBubbleImage: {fileID: 1700885386367774}
+  m_bubblectrl: {fileID: 114289816240026374}
   m_text: 
   m_ID: 0
   m_currentRoom: 0

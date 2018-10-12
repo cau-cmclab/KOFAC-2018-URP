@@ -31,9 +31,7 @@ public class NetworkPlayer : NetworkBehaviour {
 
 
     
-    public Text speechBubbleText;
-    public GameObject speechBubbleUI;
-    public GameObject speechBubbleImage;
+    public SpeechBubbleControl m_bubblectrl;
 
     [SyncVar]
     public string m_text;
@@ -44,16 +42,10 @@ public class NetworkPlayer : NetworkBehaviour {
     [SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다
 	public int m_currentRoom;  // 로컬, 리모트 플레이어가 접속한 방
 
-    private GameObject arCamera;
-    private float timer;
-    private float waitingTime;
     void Start(){
         // 플레이어가 생성되면 ImageTarget 하위 오브젝트로 설정
         this.transform.SetParent(GameObject.FindGameObjectWithTag("ImageTarget").transform);
-        arCamera = GameObject.Find("ARCamera");
 
-        timer = 0;
-        waitingTime = 5f;
 
         // 리모트 플레이어라면 MainCanvas 비활성화
         if (!isLocalPlayer)
@@ -68,23 +60,6 @@ public class NetworkPlayer : NetworkBehaviour {
 	}
 
 	void Update () {
-        speechBubbleText.text = m_text;
-
-        if(m_text == "")
-            speechBubbleUI.SetActive(false);
-        else{
-            speechBubbleUI.SetActive(true);
-            timer += Time.deltaTime;   
-        }
-        
-        speechBubbleUI.transform.LookAt(arCamera.transform);
-
-        if(timer > waitingTime)
-        {
-            CmdShareBubble("");
-            //speechBubbleText.text = "";
-            timer = 0.0f;
-        }
 
         // 로컬플레이어와 리모트플레이어의 방이 다르다면 리모트플레이어 비활성화
 		if (!isLocalPlayer) {
@@ -156,15 +131,6 @@ public class NetworkPlayer : NetworkBehaviour {
         }
     }
 
-    public void InputTextChatwindow(InputField ip)
-        {
-            //speechBubbleText.text = ip.text;
-            CmdShareBubble(ip.text);
-            // 몇 초뒤에 말풍선 초기화
-            //StartCoroutine(MyWaitForSeconds(5f));
-            timer = 0.0f;
-        }
-
 
 	[Command]
 	public void CmdGetId(){
@@ -185,7 +151,7 @@ public class NetworkPlayer : NetworkBehaviour {
 
         MyNetManager.instance.SendToServer(m_chatField.text);
         // 자신의 말풍선에 출력
-        InputTextChatwindow(m_chatField);
+        m_bubblectrl.InitBubbleTimer();
         CmdShareBubble(m_chatField.text);
         m_chatField.text = "";
 	}

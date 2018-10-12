@@ -22,16 +22,45 @@ public class SpeechBubbleControl : MonoBehaviour {
 
     private int emotional_state = 1;
 
-    
+    public Text speechBubbleText;
+    public GameObject speechBubbleUI;
+    public GameObject speechBubbleImage;
+
+    private GameObject arCamera;
+    private float timer;
+    private float waitingTime;
+
+    public NetworkPlayer m_player;
 
     // Use this for initialization
     void Start () {
-       
+       arCamera = GameObject.Find("ARCamera");
+
+        timer = 0;
+        waitingTime = 5f;
     }
 
     // Update is called once per frame
     void Update() {
-        
+        speechBubbleUI.transform.LookAt(arCamera.transform);
+
+
+        speechBubbleText.text = m_player.m_text;
+
+        if(m_player.m_text == "")
+            speechBubbleUI.SetActive(false);
+        else{
+            speechBubbleUI.SetActive(true);
+            timer += Time.deltaTime;  
+            if(timer > waitingTime){
+                m_player.CmdShareBubble("");
+                //speechBubbleText.text = "";
+                timer = 0.0f;
+            }
+        }
+
+        if(!m_player.isLocalPlayer)
+            return;
 
         switch(emotional_state)
         {
@@ -168,6 +197,17 @@ public class SpeechBubbleControl : MonoBehaviour {
         AndroidJavaObject ajo = new AndroidJavaObject("armessenger.choi.cmc.unityandroidplugin.UnityBinder");
         ajo.CallStatic("OpenGallery", ajc.GetStatic<AndroidJavaObject>("currentActivity"));
     }
+
+
+    public void InitBubbleTimer()
+    {
+            //speechBubbleText.text = ip.text;
+           // CmdShareBubble(ip.text);
+            // 몇 초뒤에 말풍선 초기화
+            //StartCoroutine(MyWaitForSeconds(5f));
+            timer = 0.0f;
+    }
+
 
     public void Emotion_UpButton()
     {
