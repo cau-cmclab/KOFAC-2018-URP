@@ -19,7 +19,6 @@ public class NetworkPlayer : NetworkBehaviour {
     public InputField m_chatField;  // 채팅 입력창
     public GameObject m_sendMsgButton;
     public GameObject m_GalleryButton;
-    public GameObject m_SpeechButton;
     public GameObject m_panelForButtons;
 
     [SyncVar]
@@ -62,14 +61,12 @@ public class NetworkPlayer : NetworkBehaviour {
 			m_chatField.gameObject.SetActive (false);
 			m_sendMsgButton.SetActive (false);
             m_GalleryButton.SetActive(false);
-            m_SpeechButton.SetActive(false);
             m_panelForButtons.SetActive(false);
         }
         else {
             m_chatField.gameObject.SetActive(true);
             m_sendMsgButton.SetActive(true);
             m_GalleryButton.SetActive(true);
-            m_SpeechButton.SetActive(true);
             m_panelForButtons.SetActive(true);
         }
 	}
@@ -167,7 +164,7 @@ public class NetworkPlayer : NetworkBehaviour {
         m_isRSLActive = !m_isRSLActive;
         m_roomScrollList.SetActive(m_isRSLActive);
     }
-  
+
     /* 한가지 사실을 알았는데 Cmd함수를 버튼의 콜백함수로 사용하면 Cmd기능이 제대로 동작하지 않는다. ([Command]에 의해서 서버에서 실행되야하는데 그렇게 되지 않음.)
        따라서 버튼으로 호출하려면 버튼 콜백함수를 따로 만들어 그 안에서 호출해주어야 함. */
     // 캐릭터 변경 버튼
@@ -183,7 +180,7 @@ public class NetworkPlayer : NetworkBehaviour {
     {
         MyNetManager.instance.RespawnPlayer(this);
     }
-  
+
     public void ChangeMyObjName()
     {
         this.gameObject.name = this.gameObject.name + "_LOCALPLAYER";
