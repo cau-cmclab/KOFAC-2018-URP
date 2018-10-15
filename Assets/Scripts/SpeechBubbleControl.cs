@@ -52,7 +52,7 @@ public class SpeechBubbleControl : MonoBehaviour {
         else{
             speechBubbleUI.SetActive(true);
             timer += Time.deltaTime;  
-            if(timer > waitingTime){
+            if((timer > waitingTime) && !m_player.isServer){
                 m_player.CmdShareBubble("");
                 //speechBubbleText.text = "";
                 timer = 0.0f;
@@ -225,4 +225,29 @@ public class SpeechBubbleControl : MonoBehaviour {
         speechBubbleText.text = "";
     }*/
 
+    public void ChangeBubbleColor(){
+        
+        switch(m_player.m_bubblecolorstate % 6){
+            case 0:
+                speechBubbleUI.GetComponent<Image>().color = Color.white;
+                break;
+            case 1:
+                speechBubbleUI.GetComponent<Image>().color = Color.green;
+                break;
+            case 2:
+                speechBubbleUI.GetComponent<Image>().color = Color.blue;
+                break;
+            case 3:
+                speechBubbleUI.GetComponent<Image>().color = Color.gray;
+                break;
+            case 4:
+                speechBubbleUI.GetComponent<Image>().color = Color.yellow;
+                break;
+            case 5:
+                speechBubbleUI.GetComponent<Image>().color = Color.magenta;
+                break;
+            default:
+                break;
+        }        
+    }
 }

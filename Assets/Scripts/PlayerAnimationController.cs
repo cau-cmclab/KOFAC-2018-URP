@@ -56,22 +56,22 @@ public class PlayerAnimationController : MonoBehaviour
     AudioSource audioSource;
 
     GameObject objEmotionalEffect = null;
-    Camera camera;
+    Camera m_camera;
 
 	void Start ()
     {
         animator = GetComponent<Animator>();
         audioSource = gameObject.AddComponent<AudioSource>();
 
-        camera = Camera.main;
+        m_camera = Camera.main;
     }
 	
 	void Update ()
     {
         // 감정표현용 게임오브젝트가 항상 카메라를 향하도록 함
-		if (camera && objEmotionalEffect)
+		if (m_camera && objEmotionalEffect)
         {
-            objEmotionalEffect.transform.LookAt(camera.transform);
+            objEmotionalEffect.transform.LookAt(m_camera.transform);
         }
 	}
 

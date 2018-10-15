@@ -28,6 +28,7 @@ public class NetworkPlayer : NetworkBehaviour {
     public GameObject m_sendMsgButton;
     public GameObject m_GalleryButton;
     public GameObject m_panelForButtons;
+    public GameObject m_BubbleColorButton;
 
 
     
@@ -41,6 +42,8 @@ public class NetworkPlayer : NetworkBehaviour {
 
     [SyncVar] // [SyncVar] : 서버에서 값을 변경하면 다른 클라이언트들에게 동기화 시켜준다
 	public int m_currentRoom;  // 로컬, 리모트 플레이어가 접속한 방
+    [SyncVar]
+    public int m_bubblecolorstate;
 
     void Start(){
         // 플레이어가 생성되면 ImageTarget 하위 오브젝트로 설정
@@ -55,6 +58,7 @@ public class NetworkPlayer : NetworkBehaviour {
         else
         {
             CmdGetId();
+            ChangeBubbleColor();
             MyNetManager.instance.m_roomListContent = this.m_roomListContent;
         }
 	}
@@ -78,11 +82,13 @@ public class NetworkPlayer : NetworkBehaviour {
 			m_chatField.gameObject.SetActive (false);
 			m_sendMsgButton.SetActive (false);
             m_GalleryButton.SetActive(false);
+            m_BubbleColorButton.SetActive(false);
             m_panelForButtons.SetActive(false);
         } else {
             m_chatField.gameObject.SetActive(true);
             m_sendMsgButton.SetActive(true);
             m_GalleryButton.SetActive(true);
+            m_BubbleColorButton.SetActive(true);
             m_panelForButtons.SetActive(true);
         }
 
@@ -159,6 +165,21 @@ public class NetworkPlayer : NetworkBehaviour {
     [Command]
     public void CmdShareBubble(string str){
         m_text = str;
+    }
+
+    public void ChangeBubbleColor(){
+        CmdChangeBubbleColor();
+    }
+
+    [Command]
+    public void CmdChangeBubbleColor(){
+        m_bubblecolorstate++;
+        RpcBubbleColor();
+    }
+
+    [ClientRpc]
+    public void RpcBubbleColor(){
+        this.m_bubblectrl.ChangeBubbleColor();
     }
 
     [Command]
