@@ -215,8 +215,6 @@ public class MyNetManager : NetworkManager
     // 테스트 이미지 보내기
     public void TestSendImage(byte[] dataImage, string curState, int size)
     {
-        Debug.Log("OnTestSendImage Call");
-
         Message.Msg_Image msg = new Message.Msg_Image();
         msg.roomNum = m_currentRoom;
         msg.clientId = this.m_clientId;
@@ -232,8 +230,6 @@ public class MyNetManager : NetworkManager
     // 테스트 이미지 받기
     public void TestReceiveImage(byte[] dataImage, string curState, int size)
     {
-        Debug.Log("TestReceiveImage Call");
-
         // 순차적으로 버퍼에 저장
         for (int i = 0; i < size; i++)
             imageBuffer.Add(dataImage[i]);
